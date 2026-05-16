@@ -14,7 +14,7 @@ namespace Api.Services
             _repo = repo;
         }
 
-        public async Task<ResponseJobApplicationDto?> GetByIdAsync(string id, string userId)
+        public async Task<ResponseJobApplicationDto?> GetByIdAsync(string userId, string id)
         {
             var entity = await _repo.GetByIdAsync(id);
 
@@ -24,7 +24,7 @@ namespace Api.Services
             return ToDto(entity);
 
         }
-        public async Task CreateAsync(CreateJobApplicationDto dto, string userId)
+        public async Task<ResponseJobApplicationDto> CreateAsync(string userId, CreateJobApplicationDto dto)
         {
             var entity = new JobApplication
             {
@@ -40,6 +40,8 @@ namespace Api.Services
             };
 
             await _repo.AddAsync(entity);
+
+            return ToDto(entity);
         }
         public async Task<bool> DeleteAsync(string userId, string id)
         {
@@ -56,6 +58,23 @@ namespace Api.Services
 
 
             return entities.Select(ToDto).ToList();
+        }
+
+        public async Task<bool> UpdateAsync(string userId, string id, CreateJobApplicationDto dto)
+        {
+            var existing = await _repo.GetByIdAsync(id);
+
+            if (existing == null || existing.UserId != userId) return false;
+
+            existing.CompanyName = dto.CompanyName;
+            existing.Position = dto.Position;
+            existing.ApplicationLink = dto.ApplicationLink;
+            existing.Status = dto.Status;
+            existing.Description = dto.Description;
+            existing.DateApplied = dto.DateApplied.ToUniversalTime();
+            existing.DateUpdated = DateTime.UtcNow;
+
+            return await _repo.UpdateAsync(existing);
         }
 
         private static ResponseJobApplicationDto ToDto(JobApplication entity) => new()

@@ -1,7 +1,10 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using Api.Models;
-
+using Api.Repositories;
+using Api.Repositories.Interfaces;
+using Api.Services;
+using Api.Services.Interfaces;
 using Api.Shared;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
@@ -14,6 +17,9 @@ builder.Services.Configure<MongoDBSettings>(
     builder.Configuration.GetSection("MongoDB")
 );
 builder.Services.AddSingleton<MongoDBContext>();
+builder.Services.AddScoped<IJobApplicationRepository, JobApplicationRepository>();
+builder.Services.AddScoped<IJobApplicationService, JobApplicationService>();
+
 
 builder.Services.AddRateLimiter(options =>
 {

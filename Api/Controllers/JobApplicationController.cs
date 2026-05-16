@@ -1,138 +1,85 @@
 using System.Security.Claims;
 using Api.Dto;
-using Api.Models;
-using Api.Shared;
+using Api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
+using Microsoft.AspNetCore.RateLimiting;
+
 
 namespace Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [EnableRateLimiting("SlidingWindow")]
     [Authorize]
     public class JobApplicationController : ControllerBase
     {
 
-        private readonly MongoDBContext _database;
+        private readonly IJobApplicationService _service;
 
-        public JobApplicationController(MongoDBContext context)
+
+        public JobApplicationController(IJobApplicationService service)
         {
-            _database = context;
+            _service = service;
         }
 
-        [HttpGet("")]
-        public async Task<IActionResult> GetJobApplications()
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-            {
-                return Unauthorized("User ID claim not found");
-            }
-
+            if (userIdClaim == null) return Unauthorized();
             var userId = userIdClaim.Value;
 
-            var jobApplications = await _database.JobApplications.Find(ja => ja.UserId == userId).ToListAsync();
-
-            var responseJobApplications = jobApplications.Select(ja => new ResponseJobApplicationDto
-            {
-                Id = ja.Id!,
-                UserId = ja.UserId,
-                CompanyName = ja.CompanyName,
-                Position = ja.Position,
-                ApplicationLink = ja.ApplicationLink,
-                Status = ja.Status,
-                Description = ja.Description,
-                DateApplied = ja.DateApplied,
-                DateUpdated = ja.DateUpdated,
-                DateCreated = ja.DateCreated
-            });
-            return Ok(responseJobApplications);
+            var result = await _service.GetByUserIdAsync(userId);
+            return Ok(result);
         }
 
-        [HttpPost("")]
-        public async Task<IActionResult> CreateJobApplication([FromBody] CreateJobApplicationDto CJaDto)
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateJobApplicationDto dto)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-            {
-                return Unauthorized("User ID claim not found");
-            }
-
+            if (userIdClaim == null) return Unauthorized();
             var userId = userIdClaim.Value;
-
-            var jobApplication = new JobApplication
-            {
-                UserId = userId,
-                CompanyName = CJaDto.CompanyName,
-                Position = CJaDto.Position,
-                ApplicationLink = CJaDto.ApplicationLink,
-                Status = CJaDto.Status,
-                Description = CJaDto.Description,
-                DateApplied = CJaDto.DateApplied,
-                DateCreated = DateTime.UtcNow.ToString("o")
-            };
-
-            await _database.JobApplications.InsertOneAsync(jobApplication);
-            return Ok(jobApplication);
-
+            var created = await _service.CreateAsync(userId, dto);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteJobApplication(string id)
+        public async Task<IActionResult> Delete(string id)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-            {
-                return Unauthorized("Unauthorized");
-            }
-
+            if (userIdClaim == null) return Unauthorized();
             var userId = userIdClaim.Value;
+            var result = await _service.DeleteAsync(userId, id);
+            return result ? NoContent() : NotFound();
 
-            var jobApplicationToDelete = await _database.JobApplications.Find(ja => ja.Id == id && ja.UserId == userId).FirstOrDefaultAsync();
-            if (jobApplicationToDelete == null)
-            {
-                return NotFound("Job application not found");
-            }
+        }
 
-            await _database.JobApplications.DeleteOneAsync(ja => ja.Id == jobApplicationToDelete.Id);
-            return Ok(new { message = "JobApplication deleted succesfully" });
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(string id)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+            var userId = userIdClaim.Value;
+            var result = await _service.GetByIdAsync(userId, id);
+            return result is null ? NotFound() : Ok(result);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateJobApplication(string id, [FromBody] CreateJobApplicationDto jaDto)
+        public async Task<IActionResult> Update(string id, [FromBody] CreateJobApplicationDto dto)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-            {
-                return Unauthorized("Unauthorized");
-            }
-
+            if (userIdClaim == null) return Unauthorized();
             var userId = userIdClaim.Value;
 
-            var jobApplicationToUpdate = await _database.JobApplications.Find(ja => ja.Id == id && ja.UserId == userId).FirstOrDefaultAsync();
-            if (jobApplicationToUpdate == null)
-            {
-                return NotFound("Job application not found");
-            }
+            var result = await _service.UpdateAsync(userId, id, dto);
+            return result ? NoContent() : NotFound();
 
-            jobApplicationToUpdate.CompanyName = jaDto.CompanyName;
-            jobApplicationToUpdate.Position = jaDto.Position;
-            jobApplicationToUpdate.ApplicationLink = jaDto.ApplicationLink;
-            jobApplicationToUpdate.Status = jaDto.Status;
-            jobApplicationToUpdate.Description = jaDto.Description;
-            jobApplicationToUpdate.DateApplied = jaDto.DateApplied;
-            jobApplicationToUpdate.DateUpdated = DateTime.UtcNow.ToString("o");
-
-            await _database.JobApplications.ReplaceOneAsync(ja => ja.Id == jobApplicationToUpdate.Id, jobApplicationToUpdate);
-
-            return Ok(jobApplicationToUpdate);
         }
 
-
-    };
-
-
+    }
 
 }
 

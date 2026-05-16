@@ -26,5 +26,11 @@ namespace Api.Repositories
             var result = await _collection.DeleteOneAsync(ja => ja.Id == id);
             return result.DeletedCount > 0;
         }
+
+        public async Task<bool> UpdateAsync(JobApplication entity)
+        {
+            var result = await _collection.ReplaceOneAsync(ja => ja.Id == entity.Id, entity);
+            return result.MatchedCount > 0;
+        }
     }
 }

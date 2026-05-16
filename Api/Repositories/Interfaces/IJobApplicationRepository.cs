@@ -8,5 +8,6 @@ namespace Api.Repositories.Interfaces
         Task<JobApplication?> GetByIdAsync(string id);
         Task AddAsync(JobApplication entity);
         Task<bool> DeleteAsync(string id);
+        Task<bool> UpdateAsync(JobApplication entity);
     }
 }
