@@ -79,7 +79,7 @@ namespace Api.Services
 
         private static ResponseJobApplicationDto ToDto(JobApplication entity) => new()
         {
-            Id = entity.Id,
+            Id = entity.Id ?? string.Empty,
             UserId = entity.UserId,
             CompanyName = entity.CompanyName,
             Position = entity.Position,

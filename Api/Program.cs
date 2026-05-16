@@ -17,8 +17,17 @@ builder.Services.Configure<MongoDBSettings>(
     builder.Configuration.GetSection("MongoDB")
 );
 builder.Services.AddSingleton<MongoDBContext>();
+
+
+
 builder.Services.AddScoped<IJobApplicationRepository, JobApplicationRepository>();
 builder.Services.AddScoped<IJobApplicationService, JobApplicationService>();
+
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
+
 
 
 builder.Services.AddRateLimiter(options =>
@@ -56,7 +65,8 @@ builder.Services.AddAuthentication(cfg =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]!)),
         ValidateIssuer = false,
         ValidateAudience = false,
-        ClockSkew = TimeSpan.Zero
+        ClockSkew = TimeSpan.Zero,
+
     };
 });
 
@@ -82,6 +92,12 @@ builder.Services.AddSwaggerGen();
 
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var ctx = scope.ServiceProvider.GetRequiredService<MongoDBContext>();
+    await ctx.EnsureIndexesAsync();
+}
 
 
 if (app.Environment.IsDevelopment())
