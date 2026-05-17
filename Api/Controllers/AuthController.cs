@@ -1,6 +1,6 @@
+using Api.Common;
 using Api.Dto;
 using Api.Services.Interfaces;
-using Api.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -24,12 +24,17 @@ namespace Api.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
             var result = await _service.RegisterUser(dto);
-            if (!result.Success)
+            if (!result.isSuccess)
             {
-                return result.Error switch
+                return result.Error!.Code switch
                 {
-                    AuthError.EmailAlreadyInUse => Conflict(new { error = "Email already in use" }),
+                    ErrorCodes.EmailAlreadyInUse => Conflict(new
+                    {
+                        error = result.Error.Message
+                    }),
                     _ => StatusCode(500, new { error = "Something went wrong" })
+
+
                 };
             }
             return Ok(new { user = result.Value });

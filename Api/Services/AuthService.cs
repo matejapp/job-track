@@ -1,8 +1,9 @@
+using Api.Common;
 using Api.Dto;
 using Api.Models;
 using Api.Repositories.Interfaces;
 using Api.Services.Interfaces;
-using Api.Shared;
+
 
 namespace Api.Services
 {
@@ -17,11 +18,11 @@ namespace Api.Services
             _jwt = jwt;
         }
 
-        public async Task<AuthResult<GetUserDto>> RegisterUser(RegisterDto registerDto)
+        public async Task<Result<GetUserDto>> RegisterUser(RegisterDto registerDto)
         {
             var existing = await _repo.GetUserByEmail(registerDto.Email);
             if (existing != null)
-                return AuthResult<GetUserDto>.Fail(AuthError.EmailAlreadyInUse);
+                return Result<GetUserDto>.Failure(ErrorCodes.EmailAlreadyInUse, "Email already in use");
 
             var user = new User
             {
@@ -33,7 +34,7 @@ namespace Api.Services
 
             var created = await _repo.CreateUser(user);
 
-            return AuthResult<GetUserDto>.Ok(new GetUserDto
+            return Result<GetUserDto>.Success(new GetUserDto
             {
                 Id = created!.Id,
                 Name = created.Name,
