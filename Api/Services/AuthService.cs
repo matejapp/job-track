@@ -28,7 +28,7 @@ namespace Api.Services
                 Name = registerDto.Name,
                 Email = registerDto.Email,
                 PasswordHashed = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
-                DateCreated = DateTime.UtcNow.ToString("o")
+                DateCreated = DateTime.UtcNow
             };
 
             var created = await _repo.CreateUser(user);
@@ -47,8 +47,9 @@ namespace Api.Services
             if (user == null) return null;
             if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHashed)) return null;
 
-            user.LastLogin = DateTime.UtcNow.ToString("o");
-            await _repo.UpdateLastLoginAsync(user.Id!, DateTime.UtcNow.ToString("o"));
+            var now = DateTime.UtcNow;
+            user.LastLogin = now;
+            await _repo.UpdateLastLoginAsync(user.Id!, now);
 
 
 

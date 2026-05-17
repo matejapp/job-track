@@ -14,8 +14,11 @@ namespace Api.Models
         public string Email {get; set;} =  String.Empty;
         public string PasswordHashed {get; set;} = String.Empty;
         [BsonElement("created_at")]
-        public string DateCreated { get; set; } = String.Empty;  
+        [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+        public DateTime DateCreated { get; set; }
+
         [BsonElement("last_login")]
-        public string LastLogin { get; set; } = String.Empty;
+        [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+        public DateTime? LastLogin { get; set; }
     }
 }

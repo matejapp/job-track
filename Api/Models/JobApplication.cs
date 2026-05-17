@@ -13,7 +13,8 @@ namespace Api.Models
         public string CompanyName { get; set; } = String.Empty;
         public string Position { get; set; } = String.Empty;
         public string ApplicationLink { get; set; } = String.Empty;
-        public string Status { get; set; } = String.Empty;
+        [BsonRepresentation(BsonType.String)]
+        public ApplicationStatus Status { get; set; } = ApplicationStatus.Applied;
         public string Description { get; set; } = String.Empty;
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]

@@ -6,7 +6,7 @@ namespace Api.Repositories.Interfaces
     {
         Task<User?> CreateUser(User user);
         Task<User?> GetUserByEmail(string email);
-        Task UpdateLastLoginAsync(string id, string timestamp);
+        Task UpdateLastLoginAsync(string id, DateTime timestamp);
     }
 
 }

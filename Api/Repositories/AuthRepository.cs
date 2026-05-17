@@ -22,7 +22,7 @@ namespace Api.Repositories
             return await _collection.Find(u => u.Email == email).FirstOrDefaultAsync();
         }
 
-        public async Task UpdateLastLoginAsync(string id, string timestamp)
+        public async Task UpdateLastLoginAsync(string id, DateTime timestamp)
         {
             await _collection.UpdateOneAsync(
                 u => u.Id == id,

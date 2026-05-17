@@ -23,13 +23,24 @@ namespace Api.Shared
 
         public async Task EnsureIndexesAsync()
         {
-            var emailIndex = new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(u => u.Email), new CreateIndexOptions { Unique = true, Name = "ux_users_email", Collation = new Collation("en", strength: CollationStrength.Secondary) });
+            var emailIndex = new CreateIndexModel<User>(
+                Builders<User>.IndexKeys.Ascending(u => u.Email),
+                new CreateIndexOptions
+                {
+                    Unique = true,
+                    Name = "ux_users_email",
+                    Collation = new Collation("en", strength: CollationStrength.Secondary)
+                });
 
             await Users.Indexes.CreateOneAsync(emailIndex);
 
-            var userIdIndex = new CreateIndexModel<JobApplication>(Builders<JobApplication>.IndexKeys.Ascending(ja => ja.UserId));
+            var jobIndex = new CreateIndexModel<JobApplication>(
+                Builders<JobApplication>.IndexKeys
+                    .Ascending(ja => ja.UserId)
+                    .Descending(ja => ja.DateApplied),
+                new CreateIndexOptions { Name = "ix_jobapps_user_dateapplied_desc" });
 
-            await JobApplications.Indexes.CreateOneAsync(userIdIndex);
+            await JobApplications.Indexes.CreateOneAsync(jobIndex);
         }
 
 
