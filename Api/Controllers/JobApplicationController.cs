@@ -41,9 +41,7 @@ namespace Api.Controllers
             if (userId == null) return Unauthorized();
 
             var jobApplication = await _service.GetByIdAsync(userId, id);
-            return jobApplication is null
-                ? NotFound(new { error = "Job application not found" })
-                : Ok(new { jobApplication });
+            return Ok(new { jobApplication });
         }
 
         [HttpPost]
@@ -57,7 +55,7 @@ namespace Api.Controllers
             {
                 return BadRequest(new
                 {
-                    errors = validation.Errors.Select(e => e.PropertyName + ": " + e.ErrorMessage)
+                    errors = validation.Errors.Select(e => new { field = e.PropertyName, message = e.ErrorMessage })
                 });
             }
 
@@ -79,14 +77,12 @@ namespace Api.Controllers
             {
                 return BadRequest(new
                 {
-                    errors = validation.Errors.Select(e => e.PropertyName + ": " + e.ErrorMessage)
+                    errors = validation.Errors.Select(e => new { field = e.PropertyName, message = e.ErrorMessage })
                 });
             }
 
-            var updated = await _service.UpdateAsync(userId, id, dto);
-            return updated
-                ? NoContent()
-                : NotFound(new { error = "Job application not found" });
+            await _service.UpdateAsync(userId, id, dto);
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
@@ -95,10 +91,8 @@ namespace Api.Controllers
             var userId = User.GetUserId();
             if (userId == null) return Unauthorized();
 
-            var deleted = await _service.DeleteAsync(userId, id);
-            return deleted
-                ? NoContent()
-                : NotFound(new { error = "Job application not found" });
+            await _service.DeleteAsync(userId, id);
+            return NoContent();
         }
     }
 }

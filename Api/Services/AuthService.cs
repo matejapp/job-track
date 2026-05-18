@@ -18,11 +18,11 @@ namespace Api.Services
             _jwt = jwt;
         }
 
-        public async Task<Result<GetUserDto>> RegisterUser(RegisterDto registerDto)
+        public async Task<GetUserDto> RegisterUser(RegisterDto registerDto)
         {
             var existing = await _repo.GetUserByEmail(registerDto.Email);
             if (existing != null)
-                return Result<GetUserDto>.Failure(ErrorCodes.EmailAlreadyInUse, "Email already in use");
+                throw new BusinessException(ErrorCodes.EmailAlreadyInUse, "Email already in use", StatusCodes.Status409Conflict);
 
             var user = new User
             {
@@ -34,25 +34,23 @@ namespace Api.Services
 
             var created = await _repo.CreateUser(user);
 
-            return Result<GetUserDto>.Success(new GetUserDto
+            return new GetUserDto
             {
                 Id = created!.Id,
                 Name = created.Name,
                 Email = created.Email
-            });
+            };
         }
 
-        public async Task<string?> LoginUser(LoginDto loginDto)
+        public async Task<string> LoginUser(LoginDto loginDto)
         {
             var user = await _repo.GetUserByEmail(loginDto.Email);
-            if (user == null) return null;
-            if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHashed)) return null;
+            if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHashed))
+                throw new BusinessException(ErrorCodes.InvalidCredentials, "Invalid email or password", StatusCodes.Status401Unauthorized);
 
             var now = DateTime.UtcNow;
             user.LastLogin = now;
             await _repo.UpdateLastLoginAsync(user.Id!, now);
-
-
 
             return _jwt.GenerateJwtToken(user);
         }

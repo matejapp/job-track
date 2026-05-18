@@ -28,9 +28,7 @@ namespace Api.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-
             var validation = await _registerValidator.ValidateAsync(dto);
-
             if (!validation.IsValid)
             {
                 return BadRequest(new
@@ -38,37 +36,19 @@ namespace Api.Controllers
                     errors = validation.Errors.Select(e => new { field = e.PropertyName, message = e.ErrorMessage })
                 });
             }
-            var result = await _service.RegisterUser(dto);
-            if (!result.isSuccess)
-            {
-                return result.Error!.Code switch
-                {
-                    ErrorCodes.EmailAlreadyInUse => Conflict(new
-                    {
-                        error = result.Error.Message
-                    }),
-                    _ => StatusCode(500, new { error = "Something went wrong" })
 
-
-                };
-            }
-            return Ok(new { user = result.Value });
+            var user = await _service.RegisterUser(dto);
+            return Ok(new { user });
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-
             var validation = await _loginValidator.ValidateAsync(dto);
-
             if (!validation.IsValid)
-            {
-                return Unauthorized(new { error = "Invalid email or password" });
-            }
-            var token = await _service.LoginUser(dto);
-            if (token == null)
-                return Unauthorized(new { error = "Invalid email or password" });
+                throw new BusinessException(ErrorCodes.InvalidCredentials, "Invalid email or password", StatusCodes.Status401Unauthorized);
 
+            var token = await _service.LoginUser(dto);
             return Ok(new { token });
         }
     }

@@ -1,3 +1,4 @@
+using Api.Common;
 using Api.Dto;
 using Api.Models;
 using Api.Repositories.Interfaces;
@@ -14,16 +15,16 @@ namespace Api.Services
             _repo = repo;
         }
 
-        public async Task<ResponseJobApplicationDto?> GetByIdAsync(string userId, string id)
+        public async Task<ResponseJobApplicationDto> GetByIdAsync(string userId, string id)
         {
             var entity = await _repo.GetByIdAsync(id);
 
-            if (entity == null || entity.UserId != userId) return null;
-
+            if (entity == null || entity.UserId != userId)
+                throw new BusinessException(ErrorCodes.NotFound, "Job application not found", StatusCodes.Status404NotFound);
 
             return ToDto(entity);
-
         }
+
         public async Task<ResponseJobApplicationDto> CreateAsync(string userId, CreateJobApplicationDto dto)
         {
             var entity = new JobApplication
@@ -43,28 +44,28 @@ namespace Api.Services
 
             return ToDto(entity);
         }
-        public async Task<bool> DeleteAsync(string userId, string id)
+
+        public async Task DeleteAsync(string userId, string id)
         {
             var existing = await _repo.GetByIdAsync(id);
-            if (existing == null || existing.UserId != userId) return false;
+            if (existing == null || existing.UserId != userId)
+                throw new BusinessException(ErrorCodes.NotFound, "Job application not found", StatusCodes.Status404NotFound);
 
-            return await _repo.DeleteAsync(id);
+            await _repo.DeleteAsync(id);
         }
 
         public async Task<IEnumerable<ResponseJobApplicationDto>> GetByUserIdAsync(string userId)
         {
             var entities = await _repo.GetByUserIdAsync(userId);
-
-
-
             return entities.Select(ToDto).ToList();
         }
 
-        public async Task<bool> UpdateAsync(string userId, string id, CreateJobApplicationDto dto)
+        public async Task UpdateAsync(string userId, string id, CreateJobApplicationDto dto)
         {
             var existing = await _repo.GetByIdAsync(id);
 
-            if (existing == null || existing.UserId != userId) return false;
+            if (existing == null || existing.UserId != userId)
+                throw new BusinessException(ErrorCodes.NotFound, "Job application not found", StatusCodes.Status404NotFound);
 
             existing.CompanyName = dto.CompanyName;
             existing.Position = dto.Position;
@@ -74,7 +75,7 @@ namespace Api.Services
             existing.DateApplied = dto.DateApplied.ToUniversalTime();
             existing.DateUpdated = DateTime.UtcNow;
 
-            return await _repo.UpdateAsync(existing);
+            await _repo.UpdateAsync(existing);
         }
 
         private static ResponseJobApplicationDto ToDto(JobApplication entity) => new()
