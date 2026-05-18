@@ -1,6 +1,7 @@
 using Api.Dto;
 using Api.Services.Interfaces;
 using Api.Shared;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -14,11 +15,14 @@ namespace Api.Controllers
     public class JobApplicationController : ControllerBase
     {
         private readonly IJobApplicationService _service;
+        private readonly IValidator<CreateJobApplicationDto> _validator;
 
-        public JobApplicationController(IJobApplicationService service)
+        public JobApplicationController(IJobApplicationService service, IValidator<CreateJobApplicationDto> validator)
         {
             _service = service;
+            _validator = validator;
         }
+
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -48,6 +52,15 @@ namespace Api.Controllers
             var userId = User.GetUserId();
             if (userId == null) return Unauthorized();
 
+            var validation = await _validator.ValidateAsync(dto);
+            if (!validation.IsValid)
+            {
+                return BadRequest(new
+                {
+                    errors = validation.Errors.Select(e => e.PropertyName + ": " + e.ErrorMessage)
+                });
+            }
+
             var jobApplication = await _service.CreateAsync(userId, dto);
             return CreatedAtAction(
                 nameof(GetById),
@@ -60,6 +73,15 @@ namespace Api.Controllers
         {
             var userId = User.GetUserId();
             if (userId == null) return Unauthorized();
+
+            var validation = await _validator.ValidateAsync(dto);
+            if (!validation.IsValid)
+            {
+                return BadRequest(new
+                {
+                    errors = validation.Errors.Select(e => e.PropertyName + ": " + e.ErrorMessage)
+                });
+            }
 
             var updated = await _service.UpdateAsync(userId, id, dto);
             return updated

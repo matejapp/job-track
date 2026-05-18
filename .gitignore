@@ -18,3 +18,5 @@ appsettings.json
 
 .claude
 ARCHITECTURE.md 
+.vscode
+.vscode/settings.json
