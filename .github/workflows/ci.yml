@@ -9,9 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: Api
     steps:
       - uses: actions/checkout@v4
 
@@ -28,7 +25,11 @@ jobs:
             nuget-${{ runner.os }}-
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore JobTrack.slnx
 
       - name: Build
-        run: dotnet build --no-restore -c Release
+        run: dotnet build JobTrack.slnx --no-restore -c Release
+
+      # Phase 6 T4: flip on when test suite lands
+      # - name: Test
+      #   run: dotnet test JobTrack.slnx --no-build -c Release --logger "trx;LogFileName=test-results.trx"

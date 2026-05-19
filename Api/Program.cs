@@ -79,26 +79,29 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod());
 });
 
-// Rate limiting
-builder.Services.AddRateLimiter(options =>
+// Rate limiting (skipped in Testing env so integration tests don't trip 429s)
+if (!builder.Environment.IsEnvironment("Testing"))
 {
-    options.AddSlidingWindowLimiter("SlidingWindow", config =>
+    builder.Services.AddRateLimiter(options =>
     {
-        config.Window = TimeSpan.FromSeconds(10);
-        config.SegmentsPerWindow = 2;
-        config.PermitLimit = 5;
-        config.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        config.QueueLimit = 5;
-    });
+        options.AddSlidingWindowLimiter("SlidingWindow", config =>
+        {
+            config.Window = TimeSpan.FromSeconds(10);
+            config.SegmentsPerWindow = 2;
+            config.PermitLimit = 5;
+            config.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+            config.QueueLimit = 5;
+        });
 
-    options.AddFixedWindowLimiter("FixedWindow", config =>
-    {
-        config.Window = TimeSpan.FromSeconds(30);
-        config.PermitLimit = 5;
-        config.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        config.QueueLimit = 0;
+        options.AddFixedWindowLimiter("FixedWindow", config =>
+        {
+            config.Window = TimeSpan.FromSeconds(30);
+            config.PermitLimit = 5;
+            config.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+            config.QueueLimit = 0;
+        });
     });
-});
+}
 
 // Exception handling
 builder.Services.AddExceptionHandler<ExceptionHandlingMiddleware>();
@@ -133,7 +136,10 @@ app.UseSwaggerUI();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseRateLimiter();
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    app.UseRateLimiter();
+}
 
 app.MapControllers();
 app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
@@ -157,3 +163,5 @@ app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks
 
 
 app.Run();
+
+
