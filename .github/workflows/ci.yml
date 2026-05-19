@@ -30,6 +30,5 @@ jobs:
       - name: Build
         run: dotnet build JobTrack.slnx --no-restore -c Release
 
-      # Phase 6 T4: flip on when test suite lands
-      # - name: Test
-      #   run: dotnet test JobTrack.slnx --no-build -c Release --logger "trx;LogFileName=test-results.trx"
+      - name: Test
+        run: dotnet test JobTrack.slnx --no-build -c Release --logger "trx;LogFileName=test-results.trx"
