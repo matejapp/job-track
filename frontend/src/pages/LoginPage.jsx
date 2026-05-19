@@ -1,15 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Briefcase } from "lucide-react";
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
-import { login } from "../api/auth";
+import { useMutation } from "@tanstack/react-query";
+import { login } from "../api/Auth";
 import { useAuth } from "../../context/AuthContext";
+import { toastSuccess, toastError, toastInfo } from "../Utils/ToastUtils";
+import { GridLoader } from "react-spinners";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -21,8 +17,15 @@ export default function LoginPage() {
   const loginMutation = useMutation({
     mutationFn: login,
     onSuccess: (data) => {
+      toastSuccess("Login successful");
       saveToken(data.token);
       navigate("/dashboard");
+    },
+    onError: (err) => {
+      toastError(err.message);
+    },
+    onMutate: () => {
+      toastInfo("Logging in...");
     },
   });
 
@@ -37,7 +40,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex font-sans">
-      {/* Left brand panel */}
       <div
         className="hidden lg:flex w-[44%] flex-col justify-between p-12 relative overflow-hidden"
         style={{
@@ -172,15 +174,21 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-            <button
-              type="submit"
-              className="w-full btn-primary justify-center py-3 mt-1 text-base"
-              style={{
-                background: "linear-gradient(135deg, #7c3aed, #4f46e5)",
-              }}
-            >
-              Sign in
-            </button>
+            {loginMutation.isPending ? (
+              <div className="flex min-h-[48px] w-full items-center justify-center pt-1">
+                <GridLoader color="#8b5cf6" size={6} />
+              </div>
+            ) : (
+              <button
+                type="submit"
+                className="w-full btn-primary justify-center py-3 mt-1 text-base"
+                style={{
+                  background: "linear-gradient(135deg, #7c3aed, #4f46e5)",
+                }}
+              >
+                Sign in
+              </button>
+            )}
           </form>
 
           <p className="text-center text-xs text-slate-500 mt-6">

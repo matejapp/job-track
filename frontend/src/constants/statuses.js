@@ -43,10 +43,10 @@ export const STATUSES = [{
 ]
 
 export const getStatus = (value) =>
-  STATUSES.find((s) => s.value === value) ? ? {
+  STATUSES.find((s) => s.value === value) ?? {
     value,
     label: value,
     color: '#94a3b8',
     bg: '#f8fafc',
     text: '#475569',
-  }
+  };
