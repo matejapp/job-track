@@ -15,7 +15,10 @@ namespace Api.Repositories
         }
 
         public async Task<IEnumerable<JobApplication>> GetByUserIdAsync(string userId)
-        => await _collection.Find(j => j.UserId == userId).ToListAsync();
+            => await _collection
+                .Find(j => j.UserId == userId)
+                .SortByDescending(j => j.DateApplied)
+                .ToListAsync();
 
         public async Task<JobApplication?> GetByIdAsync(string id) => await _collection.Find(ja => ja.Id == id).FirstOrDefaultAsync();
 
