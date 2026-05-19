@@ -1,0 +1,12 @@
+bin/
+obj/
+Logs/
+.vs/
+appsettings.Development.json
+.env
+.env.*
+*.user
+Api.csproj.lscache
+Api.http
+Dockerfile
+.dockerignore

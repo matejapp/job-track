@@ -3,20 +3,24 @@
 **/obj/
 *.user
 *.suo
+*.csproj.lscache
 .vs/
+**/Logs/
 
 # Node
 **/node_modules/
 **/dist/
 **/.vite/
 
+# Docker
+docker-compose.override.yml
+
 # Secrets / env
 *.env
 *.env.local
 appsettings.Development.json
-appsettings.json
 
 .claude
-ARCHITECTURE.md 
+ARCHITECTURE.md
 .vscode
 .vscode/settings.json
