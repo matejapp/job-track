@@ -125,15 +125,10 @@ using (var scope = app.Services.CreateScope())
 app.UseExceptionHandler();
 app.UseSerilogRequestLogging();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-else
-{
-    app.UseHttpsRedirection();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
+
+
 
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
