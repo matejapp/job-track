@@ -1,37 +1,15 @@
-const API_URL = import.meta.env.VITE_BASE_API;
+import { apiRequest } from "./httpClient";
 
-async function request(path,body) {
-    const res = await fetch(API_URL + path,{
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body),
-    });
+const authRequest = (path, body) =>
+  apiRequest(path, {
+    method: "POST",
+    body,
+    auth: false,
+    redirectOnUnauthorized: false,
+  });
 
-    const data = await res.json().catch(() => ({}))
-    
-    if(!res.ok){
-        if (data?.error?.message) {
-            const err = new Error(data.error.message);
-            err.code = data.error.code;
-            err.traceId = data.traceId;
-            err.status = res.status;
-            throw err;
-        }
+export const login = ({ email, password }) =>
+  authRequest("/auth/login", { email, password });
 
-        if (Array.isArray(data?.errors)) {
-            const err = new Error(data.errors.map((e) => e.message).join(", "));
-            err.code = "VALIDATION_FAILED";
-            err.fieldErrors = data.errors;
-            err.status = res.status;
-            throw err;
-        }
-        throw new Error(`Request failed ${res.status}`);
-    }
-
-    return data;
-}
-
-export const login = ({email, password}) => request('/auth/login',{email, password});
-export const register = ({name, email, password}) => request('/auth/register',{name, email, password});
+export const register = ({ name, email, password }) =>
+  authRequest("/auth/register", { name, email, password });

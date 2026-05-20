@@ -36,7 +36,11 @@ export default function RecentApplications({ applications }) {
       </div>
       <div className="space-y-0.5">
         {recent.map((app, i) => (
-          <div key={app.id} className="flex items-center gap-3 py-2.5 px-2 rounded-xl hover:bg-slate-50 transition-colors group cursor-default">
+          <Link
+            key={app.id}
+            to={`/applications?applicationId=${encodeURIComponent(app.id)}`}
+            className="flex items-center gap-3 py-2.5 px-2 rounded-xl hover:bg-slate-50 transition-colors group"
+          >
             <CompanyAvatar name={app.companyName} index={i} />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-slate-800 truncate leading-tight">{app.position}</p>
@@ -47,7 +51,7 @@ export default function RecentApplications({ applications }) {
               {new Date(app.dateApplied).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </span>
             <ArrowRight size={13} className="text-slate-200 group-hover:text-slate-400 transition-colors flex-shrink-0" />
-          </div>
+          </Link>
         ))}
         {recent.length === 0 && (
           <p className="text-sm text-slate-400 text-center py-10">No applications yet. Add one above!</p>
