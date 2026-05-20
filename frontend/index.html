@@ -2,14 +2,114 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#111110" />
+    <meta name="color-scheme" content="light" />
+
+    <!-- Primary Meta Tags -->
+    <title>JobTrack — A focused workspace for your job search</title>
+    <meta name="title" content="JobTrack — A focused workspace for your job search" />
+    <meta
+      name="description"
+      content="JobTrack is a calm, dedicated workspace for managing job applications, interviews, notes, links, and follow-ups. Stop juggling spreadsheets and scattered tabs — keep your search organized in one place."
+    />
+    <meta
+      name="keywords"
+      content="job application tracker, job search organizer, interview tracker, application tracking, job hunt tool, career tracker, follow-up reminders, job pipeline, job applications spreadsheet alternative"
+    />
+    <meta name="author" content="JobTrack" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta name="googlebot" content="index, follow" />
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://job-track.app/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="JobTrack" />
+    <meta property="og:url" content="https://job-track.app/" />
+    <meta property="og:title" content="JobTrack — A focused workspace for your job search" />
+    <meta
+      property="og:description"
+      content="A calm, dedicated workspace for managing applications, interviews, notes, and follow-ups. Stop juggling spreadsheets and tabs."
+    />
+    <meta property="og:image" content="https://job-track.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="JobTrack — a focused workspace for your job search" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://job-track.app/" />
+    <meta name="twitter:title" content="JobTrack — A focused workspace for your job search" />
+    <meta
+      name="twitter:description"
+      content="A calm, dedicated workspace for managing applications, interviews, notes, and follow-ups. Stop juggling spreadsheets and tabs."
+    />
+    <meta name="twitter:image" content="https://job-track.app/og-image.png" />
+    <meta name="twitter:image:alt" content="JobTrack — a focused workspace for your job search" />
+
+    <!-- Favicon (SVG, with monogram) -->
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111110'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Georgia,serif' font-style='italic' font-weight='700' font-size='38' fill='%23f5f0e6'%3EJ%3C/text%3E%3Ccircle cx='46' cy='20' r='4' fill='%23c2410c'/%3E%3C/svg%3E"
+    />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Preconnect / Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
-    <title>JobTrack</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Structured data (Organization + WebSite + SoftwareApplication) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://job-track.app/#organization",
+            "name": "JobTrack",
+            "url": "https://job-track.app/",
+            "logo": "https://job-track.app/og-image.png"
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://job-track.app/#website",
+            "url": "https://job-track.app/",
+            "name": "JobTrack",
+            "publisher": { "@id": "https://job-track.app/#organization" },
+            "inLanguage": "en-US"
+          },
+          {
+            "@type": "SoftwareApplication",
+            "name": "JobTrack",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+            "url": "https://job-track.app/",
+            "description": "A focused workspace for managing job applications, interviews, notes, links, and follow-ups.",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      JobTrack is a focused workspace for managing job applications, interviews, links, notes, and
+      follow-ups. Please enable JavaScript to use the app.
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

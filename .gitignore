@@ -1,4 +1,4 @@
-# .NET
+# ─────────── .NET ───────────
 **/bin/
 **/obj/
 *.user
@@ -6,21 +6,54 @@
 *.csproj.lscache
 .vs/
 **/Logs/
+appsettings.*.json
+!appsettings.json
+!appsettings.Production.json.example
 
-# Node
+# ─────────── Node / Vite ───────────
 **/node_modules/
 **/dist/
 **/.vite/
+**/.turbo/
+**/.next/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Docker
+# ─────────── Tests / coverage ───────────
+**/coverage/
+**/playwright-report/
+**/test-results/
+**/.nyc_output/
+
+# ─────────── Docker ───────────
 docker-compose.override.yml
+docker-compose.*.local.yml
 
-# Secrets / env
-*.env
-*.env.local
-appsettings.Development.json
+# ─────────── Secrets / env ───────────
+# Ignore every .env variant by default, then explicitly keep the example files.
+.env
+.env.*
+!.env.example
+!*.env.example
 
+# Certs / keys
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
+
+# ─────────── Editor / OS ───────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─────────── Local-only notes ───────────
 .claude
 ARCHITECTURE.md
-.vscode
-.vscode/settings.json

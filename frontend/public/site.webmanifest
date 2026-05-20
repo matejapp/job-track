@@ -1,0 +1,10 @@
+{
+  "name": "JobTrack — Job Application Tracker",
+  "short_name": "JobTrack",
+  "description": "A focused workspace for managing job applications, interviews, links, notes, and follow-ups.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f0e6",
+  "theme_color": "#111110",
+  "icons": []
+}
