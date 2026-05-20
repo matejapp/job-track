@@ -12,13 +12,14 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
-  const { saveToken } = useAuth();
+  const { saveToken, saveUser } = useAuth();
 
   const loginMutation = useMutation({
     mutationFn: login,
     onSuccess: (data) => {
       toastSuccess("Login successful");
       saveToken(data.token);
+      saveUser(data.user);
       navigate("/dashboard");
     },
     onError: (err) => {

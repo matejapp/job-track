@@ -11,6 +11,7 @@ import ApplicationModal from "../components/modals/ApplicationModal";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addApplication, getJobApplications } from "../api/JobApplications";
 import { toastSuccess, toastError, toastInfo } from "../Utils/ToastUtils";
+import { useAuth } from "../../context/AuthContext";
 
 const buildStats = (apps) => [
   {
@@ -43,10 +44,11 @@ const buildStats = (apps) => [
   },
 ];
 
-export default function DashboardPage({ user }) {
+export default function DashboardPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const {
     data: apps = [],

@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Briefcase,
@@ -11,7 +11,10 @@ import {
   Settings,
   Rocket,
   ChevronDown,
+  LogOut,
 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "../../../context/AuthContext";
 
 const NAV = [
   {
@@ -35,6 +38,19 @@ const NAV = [
 ];
 
 export default function Sidebar({ user }) {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const queryClient = useQueryClient();
+  const displayName = user?.name || "Unknown user";
+  const displayEmail = user?.email || "No email";
+  const avatarInitial = (user?.name || user?.email || "U").charAt(0).toUpperCase();
+
+  const handleLogout = () => {
+    logout();
+    queryClient.clear();
+    navigate("/login", { replace: true });
+  };
+
   return (
     <aside
       className="fixed left-0 top-0 h-full w-56 flex flex-col py-5 px-3 z-30"
@@ -98,20 +114,30 @@ export default function Sidebar({ user }) {
       </div>
 
       {/* User Profile */}
-      <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl hover:bg-white/5 transition-colors cursor-pointer">
-        <div
-          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-          style={{ background: "linear-gradient(135deg, #8b5cf6, #4f46e5)" }}
+      <div className="rounded-xl bg-white/[0.03] px-2 py-2">
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+            style={{ background: "linear-gradient(135deg, #8b5cf6, #4f46e5)" }}
+          >
+            {avatarInitial}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-white text-xs font-semibold truncate leading-tight">
+              {displayName}
+            </p>
+            <p className="text-slate-500 text-[10px] truncate">{displayEmail}</p>
+          </div>
+          <ChevronDown size={12} className="text-slate-500 flex-shrink-0" />
+        </div>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="mt-2 w-full flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-400 hover:bg-white/5 hover:text-white transition-colors"
         >
-          {user?.name?.charAt(0) ?? "U"}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-white text-xs font-semibold truncate leading-tight">
-            {user?.name}
-          </p>
-          <p className="text-slate-500 text-[10px] truncate">{user?.email}</p>
-        </div>
-        <ChevronDown size={12} className="text-slate-500 flex-shrink-0" />
+          <LogOut size={13} />
+          <span>Log out</span>
+        </button>
       </div>
     </aside>
   );

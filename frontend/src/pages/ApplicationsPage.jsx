@@ -14,6 +14,7 @@ import {
   updateApplication,
 } from "../api/JobApplications";
 import { toastError, toastInfo, toastSuccess } from "../Utils/ToastUtils";
+import { useAuth } from "../../context/AuthContext";
 
 const PALETTES = [
   "linear-gradient(135deg,#8b5cf6,#4f46e5)",
@@ -37,10 +38,11 @@ function CompanyAvatar({ name, index }) {
 
 const sortDate = (app) => new Date(app.dateCreated ?? app.dateApplied);
 
-export default function ApplicationsPage({ user }) {
+export default function ApplicationsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedId = searchParams.get("applicationId");
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [editApp, setEditApp] = useState(null);
   const [search, setSearch] = useState("");
