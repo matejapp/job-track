@@ -39,6 +39,7 @@ export default function App() {
           <Route path="/statistics" element={<ProtectedRoute><StatisticsPage /></ProtectedRoute>} />
           <Route path="/settings"  element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
 
+
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
         <ReactQueryDevtools initialIsOpen={false} />
