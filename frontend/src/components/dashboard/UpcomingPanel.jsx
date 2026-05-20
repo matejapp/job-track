@@ -2,10 +2,10 @@ import { Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const CARD_COLORS = [
-  { bg: "#7c3aed" },
-  { bg: "#3b82f6" },
-  { bg: "#f97316" },
-  { bg: "#22c55e" },
+  { bg: "linear-gradient(135deg,#7c3aed,#4f46e5)" },
+  { bg: "linear-gradient(135deg,#3b82f6,#06b6d4)" },
+  { bg: "linear-gradient(135deg,#f97316,#f59e0b)" },
+  { bg: "linear-gradient(135deg,#22c55e,#10b981)" },
 ];
 const STATUS_VERB = { Interview: "Interview", Assessment: "Design Challenge" };
 
@@ -15,10 +15,16 @@ function daysLabel(dateStr) {
   );
   if (diff < 0) return null;
   if (diff === 0)
-    return { label: "Today", cls: "bg-violet-100 text-violet-700" };
+    return { label: "Today", cls: "bg-clay/15 text-clay ring-1 ring-clay/30" };
   if (diff === 1)
-    return { label: "Tomorrow", cls: "bg-orange-100 text-orange-700" };
-  return { label: `In ${diff} days`, cls: "bg-slate-100 text-slate-500" };
+    return {
+      label: "Tomorrow",
+      cls: "bg-amber-100 text-amber-800 ring-1 ring-amber-200",
+    };
+  return {
+    label: `In ${diff} days`,
+    cls: "bg-paper-soft text-ink-soft ring-1 ring-ink-rule",
+  };
 }
 
 export default function UpcomingPanel({ applications }) {
@@ -28,16 +34,24 @@ export default function UpcomingPanel({ applications }) {
     .slice(0, 4);
 
   return (
-    <div className="card p-6 flex flex-col h-full">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-display font-bold text-slate-900 text-base">
-          Upcoming
-        </h2>
+    <div className="card flex h-full flex-col p-6">
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <p className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-ink-muted">
+            On the calendar
+          </p>
+          <h2 className="font-display text-[17px] font-bold leading-tight tracking-tight text-ink">
+            Up{" "}
+            <span className="font-serif italic font-normal text-clay">
+              next
+            </span>
+          </h2>
+        </div>
         <Link
           to="/applications"
-          className="text-xs text-accent font-semibold hover:underline"
+          className="text-xs font-semibold text-ink transition-colors hover:text-clay"
         >
-          View All
+          View all
         </Link>
       </div>
 
@@ -49,10 +63,10 @@ export default function UpcomingPanel({ applications }) {
           return (
             <div
               key={app.id}
-              className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-violet-200 hover:bg-accent-subtle transition-all cursor-default"
+              className="flex cursor-default items-center gap-3 rounded-xl border border-ink-rule p-3 transition-all hover:border-clay/40 hover:bg-paper-soft/40"
             >
               <div
-                className="w-11 h-11 rounded-xl flex flex-col items-center justify-center flex-shrink-0"
+                className="flex h-11 w-11 flex-shrink-0 flex-col items-center justify-center rounded-xl text-white"
                 style={{ background: col.bg }}
               >
                 <span className="text-[9px] font-bold uppercase leading-none text-white/80">
@@ -62,17 +76,17 @@ export default function UpcomingPanel({ applications }) {
                   {d.getDate()}
                 </span>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-slate-800 truncate leading-tight">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-bold leading-tight text-ink">
                   {STATUS_VERB[app.status] ?? app.status} · {app.companyName}
                 </p>
-                <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                <p className="mt-0.5 truncate text-[11px] text-ink-muted">
                   {app.position}
                 </p>
               </div>
               {badge && (
                 <span
-                  className={`text-[10px] font-bold px-2 py-1 rounded-lg flex-shrink-0 ${badge.cls}`}
+                  className={`flex-shrink-0 rounded-full px-2 py-1 text-[10px] font-bold ${badge.cls}`}
                 >
                   {badge.label}
                 </span>
@@ -81,13 +95,13 @@ export default function UpcomingPanel({ applications }) {
           );
         })}
         {upcoming.length === 0 && (
-          <p className="text-xs text-slate-400 text-center py-6">
-            No upcoming interviews or assessments
+          <p className="py-6 text-center font-serif italic text-ink-muted">
+            No upcoming interviews or assessments.
           </p>
         )}
       </div>
 
-      <button className="mt-4 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-slate-200 text-xs text-slate-400 hover:border-violet-300 hover:text-violet-500 transition-colors">
+      <button className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-ink-rule py-2.5 text-xs font-medium text-ink-muted transition-colors hover:border-clay hover:text-clay">
         <Plus size={12} />
         Add Reminder
       </button>

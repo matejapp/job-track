@@ -28,7 +28,7 @@ const PALETTES = [
 function CompanyAvatar({ name, index }) {
   return (
     <div
-      className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white"
       style={{ background: PALETTES[index % PALETTES.length] }}
     >
       {(name || "?").charAt(0).toUpperCase()}
@@ -179,14 +179,16 @@ export default function ApplicationsPage() {
       ? applications.length
       : applications.filter((app) => app.status === filter).length;
 
-  if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>{error.message}</p>;
+  if (isLoading)
+    return <p className="p-8 font-serif italic text-ink-muted">Loading…</p>;
+  if (error)
+    return <p className="p-8 text-sm text-red-600">{error.message}</p>;
 
   return (
-    <div className="flex min-h-screen bg-[#f6f5ff]">
+    <div className="flex min-h-screen bg-paper">
       <Sidebar user={user} />
 
-      <div className="flex-1 ml-56 flex flex-col min-h-screen">
+      <div className="ml-56 flex min-h-screen flex-1 flex-col">
         <TopBar
           user={user}
           onAddClick={openAdd}
@@ -195,44 +197,67 @@ export default function ApplicationsPage() {
         />
 
         <main className="flex-1 p-7">
+          {/* Editorial header */}
+          <div className="mb-5 flex items-end justify-between">
+            <div>
+              <p className="wk-section-label">
+                <span className="font-serif italic normal-case text-clay">
+                  No.
+                </span>{" "}
+                01 — Pipeline
+              </p>
+              <h2 className="mt-2 font-display text-[28px] font-bold leading-tight tracking-tight text-ink">
+                Your{" "}
+                <span className="font-serif italic font-normal text-clay">
+                  applications
+                </span>
+              </h2>
+            </div>
+            <p className="text-[12.5px] text-ink-muted">
+              <span className="font-semibold text-ink">
+                {applications.length}
+              </span>{" "}
+              total · filter, sort, or update inline.
+            </p>
+          </div>
+
           <div className="card overflow-hidden">
-            <div className="px-6 py-3.5 border-b border-slate-100 flex items-center gap-1.5 flex-wrap">
+            {/* Filter bar */}
+            <div className="flex flex-wrap items-center gap-1.5 border-b border-ink-rule/70 bg-paper/40 px-5 py-3.5">
               {["All", ...STATUSES.map((status) => status.value)].map(
-                (filter) => (
-                  <button
-                    key={filter}
-                    onClick={() => setFilter(filter)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                      activeFilter === filter
-                        ? "bg-accent text-white shadow-sm"
-                        : "text-slate-500 hover:bg-slate-100"
-                    }`}
-                  >
-                    {filter}
-                    <span
-                      className={`ml-1.5 tabular-nums ${
-                        activeFilter === filter
-                          ? "text-violet-200"
-                          : "text-slate-400"
-                      }`}
+                (filter) => {
+                  const active = activeFilter === filter;
+                  return (
+                    <button
+                      key={filter}
+                      onClick={() => setFilter(filter)}
+                      className={`wk-chip ${active ? "wk-chip-active" : ""}`}
                     >
-                      {counts(filter)}
-                    </span>
-                  </button>
-                ),
+                      {filter}
+                      <span
+                        className={`tabular-nums ${
+                          active ? "text-paper/65" : "text-ink-muted"
+                        }`}
+                      >
+                        {counts(filter)}
+                      </span>
+                    </button>
+                  );
+                },
               )}
               <div className="flex-1" />
               <button
                 onClick={() => setSortDesc((value) => !value)}
-                className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 transition-colors px-2 py-1.5"
+                className="flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:text-ink"
               >
                 <ArrowUpDown size={12} />
                 {sortDesc ? "Newest first" : "Oldest first"}
               </button>
             </div>
 
+            {/* Header row */}
             <div
-              className="grid gap-4 px-6 py-3 bg-slate-50/70 border-b border-slate-100 text-[10px] font-bold uppercase tracking-wider text-slate-400"
+              className="grid gap-4 border-b border-ink-rule/70 bg-paper-soft/40 px-6 py-3 text-[10px] font-bold uppercase tracking-wider text-ink-muted"
               style={{
                 gridTemplateColumns: "2.2fr 1.8fr 1.4fr 1fr 0.8fr 80px",
               }}
@@ -245,7 +270,8 @@ export default function ApplicationsPage() {
               <span className="text-right">Actions</span>
             </div>
 
-            <div className="divide-y divide-slate-50">
+            {/* Rows */}
+            <div className="divide-y divide-ink-rule/50">
               {filtered.map((app, index) => {
                 const isSelected = app.id === selectedId;
 
@@ -253,35 +279,39 @@ export default function ApplicationsPage() {
                   <div
                     id={`application-${app.id}`}
                     key={app.id}
-                    className={`grid gap-4 px-6 py-3.5 items-center transition-colors group animate-fade-in ${
+                    className={`group grid animate-fade-in items-center gap-4 px-6 py-3.5 transition-colors ${
                       isSelected
-                        ? "bg-violet-50 ring-1 ring-inset ring-violet-200"
-                        : "hover:bg-slate-50/60"
+                        ? "bg-clay/10 ring-1 ring-inset ring-clay/30"
+                        : "hover:bg-paper-soft/40"
                     }`}
                     style={{
                       gridTemplateColumns:
                         "2.2fr 1.8fr 1.4fr 1fr 0.8fr 80px",
                     }}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex min-w-0 items-center gap-3">
                       <CompanyAvatar name={app.companyName} index={index} />
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-800 truncate leading-tight">
+                        <p className="truncate text-sm font-semibold leading-tight text-ink">
                           {app.position}
                         </p>
-                        <p className="text-xs text-slate-400 truncate">
+                        <p className="truncate text-xs text-ink-muted">
                           {app.companyName}
                         </p>
                       </div>
                     </div>
 
-                    <p className="text-xs text-slate-500 truncate">
-                      {app.description || "-"}
+                    <p className="truncate text-xs text-ink-soft">
+                      {app.description || (
+                        <span className="font-serif italic text-ink-muted">
+                          —
+                        </span>
+                      )}
                     </p>
 
                     <Badge status={app.status} />
 
-                    <span className="text-xs text-slate-500 tabular-nums">
+                    <span className="text-xs tabular-nums text-ink-soft">
                       {new Date(app.dateApplied).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
@@ -295,19 +325,21 @@ export default function ApplicationsPage() {
                           href={app.applicationLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-ink underline decoration-clay decoration-2 underline-offset-4 transition-colors hover:text-clay"
                         >
                           <ExternalLink size={11} /> Open
                         </a>
                       ) : (
-                        <span className="text-slate-300 text-xs">-</span>
+                        <span className="font-serif italic text-xs text-ink-muted">
+                          —
+                        </span>
                       )}
                     </span>
 
-                    <div className="flex items-center gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                       <button
                         onClick={() => openEdit(app)}
-                        className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+                        className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-paper-soft hover:text-ink"
                         title="Edit"
                       >
                         <Pencil size={13} />
@@ -316,14 +348,14 @@ export default function ApplicationsPage() {
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => handleDelete(app.id)}
-                            className="text-[10px] px-2 py-1 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition-colors"
+                            className="rounded-lg bg-red-500 px-2 py-1 text-[10px] font-bold text-white transition-colors hover:bg-red-600"
                             disabled={deleteMutation.isPending}
                           >
                             Yes
                           </button>
                           <button
                             onClick={() => setConfirm(null)}
-                            className="text-[10px] px-2 py-1 bg-slate-100 rounded-lg font-bold hover:bg-slate-200 transition-colors"
+                            className="rounded-lg bg-paper-soft px-2 py-1 text-[10px] font-bold text-ink-soft transition-colors hover:bg-paper-mid"
                             disabled={deleteMutation.isPending}
                           >
                             No
@@ -332,7 +364,7 @@ export default function ApplicationsPage() {
                       ) : (
                         <button
                           onClick={() => setConfirm(app.id)}
-                          className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+                          className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-red-50 hover:text-red-500"
                           title="Delete"
                         >
                           <Trash2 size={13} />
@@ -345,10 +377,10 @@ export default function ApplicationsPage() {
 
               {filtered.length === 0 && (
                 <div className="px-6 py-16 text-center">
-                  <p className="text-slate-400 text-sm mb-4">
+                  <p className="mb-4 font-serif text-base italic text-ink-muted">
                     {search || activeFilter !== "All"
-                      ? "No applications match your filter"
-                      : "No applications yet"}
+                      ? "No applications match your filter."
+                      : "No applications yet."}
                   </p>
                   <button onClick={openAdd} className="btn-primary">
                     <Plus size={14} /> Add your first application
@@ -357,15 +389,16 @@ export default function ApplicationsPage() {
               )}
             </div>
 
+            {/* Footer */}
             {filtered.length > 0 && (
-              <div className="px-6 py-3 border-t border-slate-100 flex items-center justify-between">
-                <p className="text-xs text-slate-400">
+              <div className="flex items-center justify-between border-t border-ink-rule/70 bg-paper/40 px-6 py-3.5">
+                <p className="text-xs text-ink-muted">
                   Showing{" "}
-                  <span className="font-semibold text-slate-600">
+                  <span className="font-semibold text-ink">
                     {filtered.length}
                   </span>{" "}
                   of{" "}
-                  <span className="font-semibold text-slate-600">
+                  <span className="font-semibold text-ink">
                     {applications.length}
                   </span>{" "}
                   applications

@@ -1,32 +1,41 @@
-export default function StatCard({ title, value, change, icon: Icon, gradient, index }) {
+export default function StatCard({ title, value, icon: Icon, gradient, index }) {
+  const number = String(index + 1).padStart(2, "0");
+
   return (
     <div
-      className="rounded-2xl p-5 text-white relative overflow-hidden animate-slide-up"
+      className="relative overflow-hidden rounded-2xl p-5 text-white animate-slide-up"
       style={{ background: gradient, animationDelay: `${index * 60}ms` }}
     >
       <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(circle at 85% 15%, rgba(255,255,255,0.15) 0%, transparent 55%)' }}
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at 85% 15%, rgba(255,255,255,0.18) 0%, transparent 55%)",
+        }}
       />
       <div
-        className="absolute -right-6 -bottom-6 w-28 h-28 rounded-full pointer-events-none"
-        style={{ background: 'rgba(255,255,255,0.08)' }}
+        className="pointer-events-none absolute -right-7 -bottom-7 h-32 w-32 rounded-full"
+        style={{ background: "rgba(255,255,255,0.08)" }}
       />
-      <div className="flex items-start justify-between mb-4 relative">
-        <p className="text-sm font-medium text-white/75">{title}</p>
+
+      <div className="relative mb-4 flex items-start justify-between">
+        <p className="text-[12.5px] font-medium text-white/80">{title}</p>
         <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: 'rgba(255,255,255,0.2)' }}
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl"
+          style={{ background: "rgba(255,255,255,0.2)" }}
         >
           <Icon size={17} className="text-white" />
         </div>
       </div>
-      <p className="font-display text-4xl font-bold text-white mb-1.5 relative">{value}</p>
-      {change && (
-        <p className="text-[11px] text-white/60 relative">
-          <span className="text-white font-bold">↑ {change}</span> from last month
+
+      <div className="relative flex items-end gap-2">
+        <p className="font-display text-[38px] font-bold leading-none tabular-nums text-white">
+          {value}
         </p>
-      )}
+        <span className="mb-1 font-serif text-[15px] italic text-white/55">
+          / {number}
+        </span>
+      </div>
     </div>
-  )
+  );
 }

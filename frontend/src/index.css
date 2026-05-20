@@ -7,22 +7,22 @@
     box-sizing: border-box;
   }
   body {
-    @apply font-sans text-slate-800 bg-[#f6f5ff];
+    @apply font-sans text-ink bg-paper;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
   ::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-200 rounded-full;
+    @apply bg-ink-rule rounded-full;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-300;
+    @apply bg-paper-deep;
   }
 }
 
@@ -43,24 +43,44 @@
   }
 
   .card {
-    @apply bg-white rounded-2xl shadow-sm border border-slate-100;
+    @apply bg-white rounded-2xl border border-ink-rule/60;
+    box-shadow: 0 1px 0 0 rgba(17, 17, 16, 0.02), 0 8px 24px -16px rgba(17, 17, 16, 0.08);
   }
 
   .input-field {
-    @apply w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800
-           placeholder:text-slate-400 bg-white
-           focus:outline-none focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400
+    @apply w-full px-4 py-2.5 rounded-xl border border-ink-rule text-sm text-ink
+           placeholder:text-ink-muted/70 bg-white
+           focus:outline-none focus:ring-2 focus:ring-clay/25 focus:border-clay
            transition-all duration-150;
   }
 
   .btn-primary {
-    @apply inline-flex items-center gap-2 px-4 py-2.5 bg-accent text-white text-sm font-semibold
-           rounded-xl hover:bg-accent-dark transition-all duration-150 active:scale-[0.97]
+    @apply inline-flex items-center gap-2 px-4 py-2.5 bg-ink text-paper text-sm font-semibold
+           rounded-xl hover:bg-clay transition-all duration-150 active:scale-[0.97]
            disabled:opacity-60 disabled:cursor-not-allowed;
   }
   .btn-ghost {
-    @apply inline-flex items-center gap-2 px-4 py-2.5 text-slate-600 text-sm font-medium
-           rounded-xl hover:bg-slate-100 transition-all duration-150 active:scale-[0.97];
+    @apply inline-flex items-center gap-2 px-4 py-2.5 text-ink-soft text-sm font-medium
+           rounded-xl hover:bg-paper-soft transition-all duration-150 active:scale-[0.97];
+  }
+
+  /* ----------  workspace (dashboard / applications) ---------- */
+
+  .wk-section-label {
+    @apply inline-flex items-center gap-2 text-[10.5px] font-semibold uppercase tracking-[0.22em] text-ink-muted;
+  }
+
+  .wk-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-ink-rule bg-paper/60 px-3 py-1.5 text-[11px] font-semibold text-ink-soft transition-colors;
+  }
+  .wk-chip:hover {
+    @apply border-ink/40 text-ink;
+  }
+  .wk-chip-active {
+    @apply border-ink bg-ink text-paper;
+  }
+  .wk-chip-active:hover {
+    @apply border-ink bg-ink text-paper;
   }
 
   /* ----------  marketing surface (landing / auth) ---------- */
