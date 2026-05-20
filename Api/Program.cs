@@ -73,10 +73,14 @@ builder.Services.AddAuthentication(cfg =>
 // CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins("https://job-track-ashy.vercel.app")
+    options.AddPolicy("Frontend/", policy =>
+        policy.WithOrigins("http://localhost:5173",
+                            "https://job-track.app",
+                            "https://www.job-track.app")
               .AllowAnyHeader()
               .AllowAnyMethod());
+
+
 });
 
 // Rate limiting (skipped in Testing env so integration tests don't trip 429s)
@@ -133,7 +137,7 @@ app.UseSwaggerUI();
 
 
 
-app.UseCors("AllowFrontend");
+app.UseCors("Frontend/", "Frontend/WWW");
 app.UseAuthentication();
 app.UseAuthorization();
 if (!app.Environment.IsEnvironment("Testing"))
