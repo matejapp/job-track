@@ -74,7 +74,7 @@ builder.Services.AddAuthentication(cfg =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("https://job-track-ashy.vercel.app")
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
