@@ -137,7 +137,7 @@ app.UseSwaggerUI();
 
 
 
-app.UseCors("Frontend/", "Frontend/WWW");
+app.UseCors("Frontend/");
 app.UseAuthentication();
 app.UseAuthorization();
 if (!app.Environment.IsEnvironment("Testing"))
