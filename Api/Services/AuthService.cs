@@ -54,5 +54,20 @@ namespace Api.Services
 
             return _jwt.GenerateJwtToken(user);
         }
+
+        public async Task<GetUserDto> GetUserName(string email)
+        {
+            var user = await _repo.GetUserByEmail(email);
+            if (user == null)
+                throw new BusinessException(ErrorCodes.NotFound, "User not found", StatusCodes.Status404NotFound);
+
+            return new GetUserDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email
+            };
+        }
+
     }
 }

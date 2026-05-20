@@ -7,5 +7,6 @@ namespace Api.Services.Interfaces
     {
         Task<GetUserDto> RegisterUser(RegisterDto registerDto);
         Task<string> LoginUser(LoginDto loginDto);
+        Task<GetUserDto> GetUserName(string email);
     }
 }

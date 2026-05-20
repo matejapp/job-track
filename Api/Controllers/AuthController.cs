@@ -49,7 +49,8 @@ namespace Api.Controllers
                 throw new BusinessException(ErrorCodes.InvalidCredentials, "Invalid email or password", StatusCodes.Status401Unauthorized);
 
             var token = await _service.LoginUser(dto);
-            return Ok(new { token });
+            var user = await _service.GetUserName(dto.Email);
+            return Ok(new { token, user });
         }
     }
 
