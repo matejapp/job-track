@@ -25,10 +25,11 @@ const PALETTES = [
   "linear-gradient(135deg,#06b6d4,#8b5cf6)",
 ];
 
-function CompanyAvatar({ name, index }) {
+function CompanyAvatar({ name, index, size = "md" }) {
+  const dims = size === "lg" ? "h-11 w-11 text-base" : "h-9 w-9 text-sm";
   return (
     <div
-      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white"
+      className={`flex flex-shrink-0 items-center justify-center rounded-xl font-bold text-white ${dims}`}
       style={{ background: PALETTES[index % PALETTES.length] }}
     >
       {(name || "?").charAt(0).toUpperCase()}
@@ -37,6 +38,12 @@ function CompanyAvatar({ name, index }) {
 }
 
 const sortDate = (app) => new Date(app.dateCreated ?? app.dateApplied);
+const formatDate = (date) =>
+  new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 
 export default function ApplicationsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -49,6 +56,7 @@ export default function ApplicationsPage() {
   const [activeFilter, setFilter] = useState("All");
   const [confirmDelete, setConfirm] = useState(null);
   const [sortDesc, setSortDesc] = useState(true);
+  const [navOpen, setNavOpen] = useState(false);
 
   const {
     data: applications = [],
@@ -67,39 +75,29 @@ export default function ApplicationsPage() {
 
   const addMutation = useMutation({
     mutationFn: addApplication,
-    onMutate: () => {
-      toastInfo("Adding application...");
-    },
+    onMutate: () => toastInfo("Adding application..."),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["apps"] });
       toastSuccess("Application added");
       closeModal();
     },
-    onError: (err) => {
-      toastError(err.message);
-    },
+    onError: (err) => toastError(err.message),
   });
 
   const updateMutation = useMutation({
     mutationFn: updateApplication,
-    onMutate: () => {
-      toastInfo("Saving application...");
-    },
+    onMutate: () => toastInfo("Saving application..."),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["apps"] });
       toastSuccess("Application updated");
       closeModal();
     },
-    onError: (err) => {
-      toastError(err.message);
-    },
+    onError: (err) => toastError(err.message),
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteApplication,
-    onMutate: () => {
-      toastInfo("Deleting application...");
-    },
+    onMutate: () => toastInfo("Deleting application..."),
     onSuccess: (_data, deletedId) => {
       queryClient.invalidateQueries({ queryKey: ["apps"] });
       toastSuccess("Application deleted");
@@ -111,9 +109,7 @@ export default function ApplicationsPage() {
         setSearchParams(nextParams, { replace: true });
       }
     },
-    onError: (err) => {
-      toastError(err.message);
-    },
+    onError: (err) => toastError(err.message),
   });
 
   useEffect(() => {
@@ -166,7 +162,6 @@ export default function ApplicationsPage() {
       updateMutation.mutate({ id: editApp.id, form });
       return;
     }
-
     addMutation.mutate(form);
   };
 
@@ -184,21 +179,66 @@ export default function ApplicationsPage() {
   if (error)
     return <p className="p-8 text-sm text-red-600">{error.message}</p>;
 
+  const renderActions = (app) => (
+    <div className="flex items-center gap-1">
+      <button
+        onClick={() => openEdit(app)}
+        className="wk-icon-btn"
+        title="Edit"
+        aria-label={`Edit ${app.companyName}`}
+      >
+        <Pencil size={14} />
+      </button>
+      {confirmDelete === app.id ? (
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => handleDelete(app.id)}
+            className="rounded-lg bg-red-500 px-2.5 py-1.5 text-[11px] font-bold text-white transition-colors hover:bg-red-600"
+            disabled={deleteMutation.isPending}
+          >
+            Yes
+          </button>
+          <button
+            onClick={() => setConfirm(null)}
+            className="rounded-lg bg-paper-soft px-2.5 py-1.5 text-[11px] font-bold text-ink-soft transition-colors hover:bg-paper-mid"
+            disabled={deleteMutation.isPending}
+          >
+            No
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => setConfirm(app.id)}
+          className="wk-icon-btn hover:bg-red-50 hover:text-red-500"
+          title="Delete"
+          aria-label={`Delete ${app.companyName}`}
+        >
+          <Trash2 size={14} />
+        </button>
+      )}
+    </div>
+  );
+
   return (
     <div className="flex min-h-screen bg-paper">
-      <Sidebar user={user} />
+      <Sidebar
+        user={user}
+        mobileOpen={navOpen}
+        onMobileClose={() => setNavOpen(false)}
+      />
 
-      <div className="ml-56 flex min-h-screen flex-1 flex-col">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:ml-56">
         <TopBar
           user={user}
           onAddClick={openAdd}
+          onMenuClick={() => setNavOpen(true)}
           searchQuery={search}
           onSearch={setSearch}
         />
 
-        <main className="flex-1 p-7">
+        <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:p-7">
           {/* Editorial header */}
-          <div className="mb-5 flex items-end justify-between">
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="wk-section-label">
                 <span className="font-serif italic normal-case text-clay">
@@ -206,7 +246,7 @@ export default function ApplicationsPage() {
                 </span>{" "}
                 01 — Pipeline
               </p>
-              <h2 className="mt-2 font-display text-[28px] font-bold leading-tight tracking-tight text-ink">
+              <h2 className="mt-2 font-display text-[24px] font-bold leading-tight tracking-tight text-ink sm:text-[28px]">
                 Your{" "}
                 <span className="font-serif italic font-normal text-clay">
                   applications
@@ -222,42 +262,45 @@ export default function ApplicationsPage() {
           </div>
 
           <div className="card overflow-hidden">
-            {/* Filter bar */}
-            <div className="flex flex-wrap items-center gap-1.5 border-b border-ink-rule/70 bg-paper/40 px-5 py-3.5">
-              {["All", ...STATUSES.map((status) => status.value)].map(
-                (filter) => {
-                  const active = activeFilter === filter;
-                  return (
-                    <button
-                      key={filter}
-                      onClick={() => setFilter(filter)}
-                      className={`wk-chip ${active ? "wk-chip-active" : ""}`}
-                    >
-                      {filter}
-                      <span
-                        className={`tabular-nums ${
-                          active ? "text-paper/65" : "text-ink-muted"
-                        }`}
+            {/* Filter bar — horizontally scrollable on mobile */}
+            <div className="border-b border-ink-rule/70 bg-paper/40 px-4 py-3 sm:px-5">
+              <div className="wk-rail">
+                {["All", ...STATUSES.map((status) => status.value)].map(
+                  (filter) => {
+                    const active = activeFilter === filter;
+                    return (
+                      <button
+                        key={filter}
+                        onClick={() => setFilter(filter)}
+                        className={`wk-chip ${active ? "wk-chip-active" : ""}`}
                       >
-                        {counts(filter)}
-                      </span>
-                    </button>
-                  );
-                },
-              )}
-              <div className="flex-1" />
-              <button
-                onClick={() => setSortDesc((value) => !value)}
-                className="flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:text-ink"
-              >
-                <ArrowUpDown size={12} />
-                {sortDesc ? "Newest first" : "Oldest first"}
-              </button>
+                        {filter}
+                        <span
+                          className={`tabular-nums ${
+                            active ? "text-paper/65" : "text-ink-muted"
+                          }`}
+                        >
+                          {counts(filter)}
+                        </span>
+                      </button>
+                    );
+                  },
+                )}
+              </div>
+              <div className="mt-3 flex items-center justify-end sm:mt-2">
+                <button
+                  onClick={() => setSortDesc((value) => !value)}
+                  className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:text-ink"
+                >
+                  <ArrowUpDown size={12} />
+                  {sortDesc ? "Newest first" : "Oldest first"}
+                </button>
+              </div>
             </div>
 
-            {/* Header row */}
+            {/* Desktop table header (lg+) */}
             <div
-              className="grid gap-4 border-b border-ink-rule/70 bg-paper-soft/40 px-6 py-3 text-[10px] font-bold uppercase tracking-wider text-ink-muted"
+              className="hidden gap-4 border-b border-ink-rule/70 bg-paper-soft/40 px-6 py-3 text-[10px] font-bold uppercase tracking-wider text-ink-muted lg:grid"
               style={{
                 gridTemplateColumns: "2.2fr 1.8fr 1.4fr 1fr 0.8fr 80px",
               }}
@@ -270,113 +313,129 @@ export default function ApplicationsPage() {
               <span className="text-right">Actions</span>
             </div>
 
-            {/* Rows */}
+            {/* Rows / cards */}
             <div className="divide-y divide-ink-rule/50">
               {filtered.map((app, index) => {
                 const isSelected = app.id === selectedId;
+                const selectedRing = isSelected
+                  ? "bg-clay/10 ring-1 ring-inset ring-clay/30"
+                  : "hover:bg-paper-soft/40";
 
                 return (
                   <div
                     id={`application-${app.id}`}
                     key={app.id}
-                    className={`group grid animate-fade-in items-center gap-4 px-6 py-3.5 transition-colors ${
-                      isSelected
-                        ? "bg-clay/10 ring-1 ring-inset ring-clay/30"
-                        : "hover:bg-paper-soft/40"
-                    }`}
-                    style={{
-                      gridTemplateColumns:
-                        "2.2fr 1.8fr 1.4fr 1fr 0.8fr 80px",
-                    }}
+                    className={`animate-fade-in ${selectedRing}`}
                   >
-                    <div className="flex min-w-0 items-center gap-3">
-                      <CompanyAvatar name={app.companyName} index={index} />
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold leading-tight text-ink">
-                          {app.position}
+                    {/* ───────── Mobile card ───────── */}
+                    <div className="flex flex-col gap-3 p-4 lg:hidden">
+                      <div className="flex items-start gap-3">
+                        <CompanyAvatar
+                          name={app.companyName}
+                          index={index}
+                          size="lg"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold leading-tight text-ink">
+                            {app.position}
+                          </p>
+                          <p className="truncate text-xs text-ink-muted">
+                            {app.companyName}
+                          </p>
+                        </div>
+                        <Badge status={app.status} />
+                      </div>
+
+                      {app.description && (
+                        <p
+                          className="line-clamp-2 text-[12.5px] leading-snug text-ink-soft"
+                          title={app.description}
+                        >
+                          {app.description}
                         </p>
-                        <p className="truncate text-xs text-ink-muted">
-                          {app.companyName}
-                        </p>
+                      )}
+
+                      <div className="flex items-center justify-between gap-3 pt-1">
+                        <div className="flex items-center gap-3 text-[12px] text-ink-muted">
+                          <span className="tabular-nums">
+                            {formatDate(app.dateApplied)}
+                          </span>
+                          {app.applicationLink && (
+                            <a
+                              href={app.applicationLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 font-semibold text-ink underline decoration-clay decoration-2 underline-offset-4 hover:text-clay"
+                            >
+                              <ExternalLink size={12} /> Open
+                            </a>
+                          )}
+                        </div>
+                        {renderActions(app)}
                       </div>
                     </div>
 
-                    <p className="truncate text-xs text-ink-soft">
-                      {app.description || (
-                        <span className="font-serif italic text-ink-muted">
-                          —
-                        </span>
-                      )}
-                    </p>
-
-                    <Badge status={app.status} />
-
-                    <span className="text-xs tabular-nums text-ink-soft">
-                      {new Date(app.dateApplied).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-
-                    <span>
-                      {app.applicationLink ? (
-                        <a
-                          href={app.applicationLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-ink underline decoration-clay decoration-2 underline-offset-4 transition-colors hover:text-clay"
-                        >
-                          <ExternalLink size={11} /> Open
-                        </a>
-                      ) : (
-                        <span className="font-serif italic text-xs text-ink-muted">
-                          —
-                        </span>
-                      )}
-                    </span>
-
-                    <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                      <button
-                        onClick={() => openEdit(app)}
-                        className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-paper-soft hover:text-ink"
-                        title="Edit"
-                      >
-                        <Pencil size={13} />
-                      </button>
-                      {confirmDelete === app.id ? (
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => handleDelete(app.id)}
-                            className="rounded-lg bg-red-500 px-2 py-1 text-[10px] font-bold text-white transition-colors hover:bg-red-600"
-                            disabled={deleteMutation.isPending}
-                          >
-                            Yes
-                          </button>
-                          <button
-                            onClick={() => setConfirm(null)}
-                            className="rounded-lg bg-paper-soft px-2 py-1 text-[10px] font-bold text-ink-soft transition-colors hover:bg-paper-mid"
-                            disabled={deleteMutation.isPending}
-                          >
-                            No
-                          </button>
+                    {/* ───────── Desktop row ───────── */}
+                    <div
+                      className="hidden items-center gap-4 px-6 py-3.5 transition-colors lg:grid"
+                      style={{
+                        gridTemplateColumns:
+                          "2.2fr 1.8fr 1.4fr 1fr 0.8fr 80px",
+                      }}
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <CompanyAvatar name={app.companyName} index={index} />
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold leading-tight text-ink">
+                            {app.position}
+                          </p>
+                          <p className="truncate text-xs text-ink-muted">
+                            {app.companyName}
+                          </p>
                         </div>
-                      ) : (
-                        <button
-                          onClick={() => setConfirm(app.id)}
-                          className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-red-50 hover:text-red-500"
-                          title="Delete"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      )}
+                      </div>
+
+                      <p className="truncate text-xs text-ink-soft">
+                        {app.description || (
+                          <span className="font-serif italic text-ink-muted">
+                            —
+                          </span>
+                        )}
+                      </p>
+
+                      <Badge status={app.status} />
+
+                      <span className="text-xs tabular-nums text-ink-soft">
+                        {formatDate(app.dateApplied)}
+                      </span>
+
+                      <span>
+                        {app.applicationLink ? (
+                          <a
+                            href={app.applicationLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-ink underline decoration-clay decoration-2 underline-offset-4 transition-colors hover:text-clay"
+                          >
+                            <ExternalLink size={11} /> Open
+                          </a>
+                        ) : (
+                          <span className="font-serif italic text-xs text-ink-muted">
+                            —
+                          </span>
+                        )}
+                      </span>
+
+                      <div className="flex items-center justify-end">
+                        {renderActions(app)}
+                      </div>
                     </div>
                   </div>
                 );
               })}
 
               {filtered.length === 0 && (
-                <div className="px-6 py-16 text-center">
+                <div className="px-6 py-14 text-center">
                   <p className="mb-4 font-serif text-base italic text-ink-muted">
                     {search || activeFilter !== "All"
                       ? "No applications match your filter."
@@ -391,7 +450,7 @@ export default function ApplicationsPage() {
 
             {/* Footer */}
             {filtered.length > 0 && (
-              <div className="flex items-center justify-between border-t border-ink-rule/70 bg-paper/40 px-6 py-3.5">
+              <div className="flex flex-col gap-3 border-t border-ink-rule/70 bg-paper/40 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <p className="text-xs text-ink-muted">
                   Showing{" "}
                   <span className="font-semibold text-ink">
@@ -405,7 +464,7 @@ export default function ApplicationsPage() {
                 </p>
                 <button
                   onClick={openAdd}
-                  className="btn-primary"
+                  className="btn-primary self-end sm:self-auto"
                   style={{ padding: "6px 14px" }}
                 >
                   <Plus size={13} /> Add New

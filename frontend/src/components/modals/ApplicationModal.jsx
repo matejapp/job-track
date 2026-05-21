@@ -62,7 +62,7 @@ export default function ApplicationModal({ open, onClose, onSubmit, app }) {
       }
     >
       <form onSubmit={handleSubmit(submitForm)} className="space-y-4" noValidate>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="companyName" className={FIELD_LABEL}>
               Company Name *
@@ -89,7 +89,7 @@ export default function ApplicationModal({ open, onClose, onSubmit, app }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="status" className={FIELD_LABEL}>
               Status *
@@ -145,11 +145,18 @@ export default function ApplicationModal({ open, onClose, onSubmit, app }) {
           <FieldError message={errors.description?.message} />
         </div>
 
-        <div className="flex items-center justify-end gap-3 border-t border-ink-rule pt-4">
-          <button type="button" className="btn-ghost" onClick={onClose}>
+        <div className="flex flex-col-reverse gap-2 border-t border-ink-rule pt-4 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+          <button
+            type="button"
+            className="btn-ghost w-full justify-center sm:w-auto"
+            onClick={onClose}
+          >
             Cancel
           </button>
-          <button type="submit" className="btn-primary">
+          <button
+            type="submit"
+            className="btn-primary w-full justify-center sm:w-auto"
+          >
             {isEdit ? "Save Changes" : "Add Application"}
           </button>
         </div>

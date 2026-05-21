@@ -65,14 +65,15 @@ const UPCOMING = [
   { when: "Friday", title: "Prepare take-home · Supabase" },
 ];
 
-export default function ProductPreview({ scale = "default" }) {
-  const isCompact = scale === "compact";
-
+/**
+ * Marketing product preview — always rendered at its full desktop layout.
+ * On smaller viewports, the wrapping container (.preview-fit) scales this
+ * down proportionally via CSS so it never gets cramped or rewrapped.
+ */
+export default function ProductPreview() {
   return (
     <div
-      className={`relative w-full overflow-hidden rounded-[14px] border border-ink-rule bg-paper shadow-[0_36px_80px_-32px_rgba(17,17,16,0.45)] ${
-        isCompact ? "max-w-3xl" : "max-w-5xl"
-      }`}
+      className="relative w-full overflow-hidden rounded-[14px] border border-ink-rule bg-paper shadow-[0_36px_80px_-32px_rgba(17,17,16,0.45)]"
       aria-label="Preview of the JobTrack dashboard"
       role="img"
     >

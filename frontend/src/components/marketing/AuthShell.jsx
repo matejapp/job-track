@@ -40,7 +40,7 @@ export default function AuthShell({ title, subtitle, children, footer, eyebrow }
               <span className="font-serif italic text-clay">No.</span> 01 —
               The workspace
             </p>
-            <h2 className="font-display text-[52px] font-bold leading-[0.95] tracking-crunch text-balance lg:text-[64px]">
+            <h2 className="font-display text-[44px] font-bold leading-[0.95] tracking-crunch text-balance lg:text-[64px]">
               A cleaner way to{" "}
               <span className="font-serif italic font-normal text-clay">
                 manage
@@ -76,7 +76,7 @@ export default function AuthShell({ title, subtitle, children, footer, eyebrow }
         </section>
 
         {/* ───────── RIGHT — form ───────── */}
-        <section className="relative flex min-h-screen items-center justify-center px-5 py-10 sm:px-8 lg:px-14">
+        <section className="relative flex min-h-screen items-center justify-center px-5 pb-12 pt-24 sm:px-8 sm:pt-28 lg:px-14 lg:py-10">
           {/* mobile nav */}
           <div className="absolute left-5 right-5 top-5 flex items-center justify-between sm:left-8 sm:right-8 lg:hidden">
             <Link to="/" aria-label="JobTrack home">
@@ -99,7 +99,7 @@ export default function AuthShell({ title, subtitle, children, footer, eyebrow }
                   <span className="mk-number">{eyebrow}</span>
                 </p>
               ) : null}
-              <h1 className="font-display text-[42px] font-bold leading-[1.02] tracking-tightest text-ink text-balance sm:text-[48px]">
+              <h1 className="font-display text-[34px] font-bold leading-[1.02] tracking-tightest text-ink text-balance sm:text-[42px] lg:text-[48px]">
                 {title}
               </h1>
               <p className="mt-4 text-[15px] leading-relaxed text-ink-soft text-pretty">

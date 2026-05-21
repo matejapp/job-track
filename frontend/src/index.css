@@ -6,6 +6,9 @@
   * {
     box-sizing: border-box;
   }
+  html, body {
+    overflow-x: hidden;
+  }
   body {
     @apply font-sans text-ink bg-paper;
     -webkit-font-smoothing: antialiased;
@@ -71,7 +74,7 @@
   }
 
   .wk-chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-ink-rule bg-paper/60 px-3 py-1.5 text-[11px] font-semibold text-ink-soft transition-colors;
+    @apply inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border border-ink-rule bg-paper/60 px-3 py-1.5 text-[11px] font-semibold text-ink-soft transition-colors whitespace-nowrap;
   }
   .wk-chip:hover {
     @apply border-ink/40 text-ink;
@@ -81,6 +84,50 @@
   }
   .wk-chip-active:hover {
     @apply border-ink bg-ink text-paper;
+  }
+
+  /* Touch-friendly icon button: at least 40px tap target on mobile, smaller on desktop */
+  .wk-icon-btn {
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-paper-soft hover:text-ink sm:h-9 sm:w-9;
+  }
+
+  /* Horizontal scrollable rail with fade mask (mobile filter pills, etc.) */
+  .wk-rail {
+    @apply -mx-1 flex gap-1.5 overflow-x-auto overflow-y-hidden px-1 pb-1;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 0.25rem;
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
+    -webkit-mask-image: linear-gradient(to right, black 0, black calc(100% - 28px), transparent 100%);
+            mask-image: linear-gradient(to right, black 0, black calc(100% - 28px), transparent 100%);
+  }
+  .wk-rail > * {
+    scroll-snap-align: start;
+  }
+  .wk-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Scale a fixed-design block to fit its container while preserving aspect ratio.
+   * Child renders at 1000px design width and scales down to 100% of container.
+   * Used for the landing-page product preview so the mockup stays crisp at any viewport.
+   */
+  .preview-fit {
+    container-type: inline-size;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1000 / 522;
+    overflow: hidden;
+  }
+  .preview-fit > * {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1000px;
+    transform-origin: top left;
+    transform: scale(calc(100cqi / 1000px));
   }
 
   /* ----------  marketing surface (landing / auth) ---------- */

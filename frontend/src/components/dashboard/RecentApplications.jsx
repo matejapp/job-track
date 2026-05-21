@@ -27,9 +27,9 @@ export default function RecentApplications({ applications }) {
     .slice(0, 5);
 
   return (
-    <div className="card p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
+    <div className="card p-5 sm:p-6">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <p className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-ink-muted">
             Latest moves
           </p>
@@ -65,7 +65,7 @@ export default function RecentApplications({ applications }) {
               </p>
             </div>
             <Badge status={app.status} />
-            <span className="ml-1 flex-shrink-0 text-[11px] tabular-nums text-ink-muted">
+            <span className="hidden flex-shrink-0 text-[11px] tabular-nums text-ink-muted sm:ml-1 sm:inline">
               {new Date(app.dateApplied).toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
@@ -73,7 +73,7 @@ export default function RecentApplications({ applications }) {
             </span>
             <ArrowRight
               size={13}
-              className="flex-shrink-0 text-ink-rule transition-colors group-hover:text-clay"
+              className="hidden flex-shrink-0 text-ink-rule transition-colors group-hover:text-clay sm:inline"
             />
           </Link>
         ))}

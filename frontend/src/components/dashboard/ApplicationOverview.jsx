@@ -28,25 +28,25 @@ export default function ApplicationOverview({ applications }) {
   }).filter((d) => d.value > 0);
 
   return (
-    <div className="card flex h-full flex-col p-6">
-      <div className="mb-5 flex items-center justify-between">
-        <div>
+    <div className="card flex h-full flex-col p-5 sm:p-6">
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <p className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-ink-muted">
             Pipeline
           </p>
-          <h2 className="font-display text-[17px] font-bold leading-tight tracking-tight text-ink">
+          <h2 className="font-display text-[16px] font-bold leading-tight tracking-tight text-ink sm:text-[17px]">
             Application{" "}
             <span className="font-serif italic font-normal text-clay">
               overview
             </span>
           </h2>
         </div>
-        <span className="rounded-full border border-ink-rule bg-paper/60 px-3 py-1.5 text-[10.5px] font-semibold uppercase tracking-wider text-ink-muted">
+        <span className="flex-shrink-0 rounded-full border border-ink-rule bg-paper/60 px-3 py-1.5 text-[10.5px] font-semibold uppercase tracking-wider text-ink-muted">
           All time
         </span>
       </div>
 
-      <div className="flex flex-1 items-center gap-6">
+      <div className="flex flex-1 flex-col items-center gap-5 sm:flex-row sm:gap-6">
         <div className="relative flex-shrink-0">
           <ResponsiveContainer width={176} height={176}>
             <PieChart>
@@ -83,7 +83,7 @@ export default function ApplicationOverview({ applications }) {
           </div>
         </div>
 
-        <div className="flex-1 space-y-2.5">
+        <div className="w-full flex-1 space-y-2.5 sm:w-auto">
           {STATUSES.map((s) => {
             const count = applications.filter(
               (a) => a.status === s.value,

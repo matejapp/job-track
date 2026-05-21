@@ -34,9 +34,9 @@ export default function UpcomingPanel({ applications }) {
     .slice(0, 4);
 
   return (
-    <div className="card flex h-full flex-col p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
+    <div className="card flex h-full flex-col p-5 sm:p-6">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <p className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-ink-muted">
             On the calendar
           </p>

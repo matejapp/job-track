@@ -135,7 +135,7 @@ export default function LandingPage() {
                 A workspace for active job seekers
               </div>
 
-              <h1 className="font-display text-[58px] font-bold leading-[0.95] tracking-crunch text-ink text-balance sm:text-[78px] lg:text-[108px]">
+              <h1 className="font-display text-[44px] font-bold leading-[0.95] tracking-crunch text-ink text-balance sm:text-[68px] md:text-[78px] lg:text-[108px]">
                 Your job search,
                 <br />
                 <span className="font-serif italic font-normal text-clay">
@@ -242,7 +242,7 @@ export default function LandingPage() {
                 <span className="mk-number">No. 02</span>
                 — A look inside
               </p>
-              <h2 className="font-display text-[42px] font-bold leading-[1] tracking-tightest text-ink text-balance sm:text-[56px]">
+              <h2 className="font-display text-[34px] font-bold leading-[1] tracking-tightest text-ink text-balance sm:text-[44px] lg:text-[56px]">
                 One workspace that <br />
                 <span className="font-serif italic font-normal text-clay">
                   remembers
@@ -259,7 +259,9 @@ export default function LandingPage() {
 
           <div className="relative">
             <div className="absolute -inset-4 -z-10 rounded-[28px] bg-gradient-to-br from-clay/10 via-transparent to-moss/10 blur-2xl" />
-            <ProductPreview />
+            <div className="preview-fit">
+              <ProductPreview />
+            </div>
           </div>
         </div>
       </section>
@@ -276,7 +278,7 @@ export default function LandingPage() {
                 <span className="mk-number">No. 03</span>
                 — Features
               </p>
-              <h2 className="font-display text-[42px] font-bold leading-[1] tracking-tightest text-ink text-balance sm:text-[56px]">
+              <h2 className="font-display text-[34px] font-bold leading-[1] tracking-tightest text-ink text-balance sm:text-[44px] lg:text-[56px]">
                 Built for the
                 <br />
                 <span className="font-serif italic font-normal text-clay">
@@ -323,7 +325,7 @@ export default function LandingPage() {
             <span className="font-serif italic text-clay">No.</span> 04 —
             On focus
           </p>
-          <blockquote className="font-display text-[42px] font-bold leading-[1.05] tracking-tightest text-balance sm:text-[60px] lg:text-[72px]">
+          <blockquote className="font-display text-[32px] font-bold leading-[1.05] tracking-tightest text-balance sm:text-[48px] md:text-[60px] lg:text-[72px]">
             The job search rewards{" "}
             <span className="font-serif italic font-normal text-clay">
               follow-through
@@ -346,7 +348,7 @@ export default function LandingPage() {
                 <span className="mk-number">No. 05</span>
                 — How it works
               </p>
-              <h2 className="font-display text-[42px] font-bold leading-[1] tracking-tightest text-ink text-balance sm:text-[56px]">
+              <h2 className="font-display text-[34px] font-bold leading-[1] tracking-tightest text-ink text-balance sm:text-[44px] lg:text-[56px]">
                 Three steps,
                 <br />
                 <span className="font-serif italic font-normal text-clay">
@@ -365,11 +367,13 @@ export default function LandingPage() {
             {WORKFLOW.map(({ n, title, text }, idx) => (
               <li
                 key={n}
-                className="grid grid-cols-1 gap-6 bg-paper p-8 lg:grid-cols-[170px_1fr_auto] lg:items-start lg:gap-10 lg:p-10"
+                className="grid grid-cols-1 gap-4 bg-paper p-6 sm:p-8 lg:grid-cols-[170px_1fr_auto] lg:items-start lg:gap-10 lg:p-10"
               >
-                <p className="font-serif text-[20px] italic text-clay">{n}</p>
+                <p className="font-serif text-[18px] italic text-clay sm:text-[20px]">
+                  {n}
+                </p>
                 <div>
-                  <h3 className="font-display text-[26px] font-bold leading-tight tracking-tight text-ink text-balance sm:text-[30px]">
+                  <h3 className="font-display text-[22px] font-bold leading-tight tracking-tight text-ink text-balance sm:text-[26px] lg:text-[30px]">
                     {title}
                   </h3>
                   <p className="mt-3 max-w-lg text-[14.5px] leading-relaxed text-ink-soft">
@@ -397,7 +401,7 @@ export default function LandingPage() {
                 <span className="mk-number">No. 06</span>
                 — Common questions
               </p>
-              <h2 className="font-display text-[42px] font-bold leading-[1] tracking-tightest text-ink text-balance sm:text-[52px]">
+              <h2 className="font-display text-[34px] font-bold leading-[1] tracking-tightest text-ink text-balance sm:text-[44px] lg:text-[52px]">
                 Quick{" "}
                 <span className="font-serif italic font-normal text-clay">
                   answers
@@ -451,7 +455,7 @@ export default function LandingPage() {
                 strokeWidth={1.5}
                 className="mb-7 text-clay"
               />
-              <h2 className="font-display text-[48px] font-bold leading-[0.95] tracking-crunch text-balance sm:text-[72px] lg:text-[92px]">
+              <h2 className="font-display text-[36px] font-bold leading-[0.95] tracking-crunch text-balance sm:text-[56px] md:text-[72px] lg:text-[92px]">
                 Give your search a{" "}
                 <span className="font-serif italic font-normal text-clay">
                   home.

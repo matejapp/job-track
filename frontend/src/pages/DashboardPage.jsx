@@ -43,6 +43,7 @@ const buildStats = (apps) => [
 export default function DashboardPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [navOpen, setNavOpen] = useState(false);
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -80,23 +81,26 @@ export default function DashboardPage() {
       <p className="p-8 font-serif italic text-ink-muted">Loading…</p>
     );
   if (error)
-    return (
-      <p className="p-8 text-sm text-red-600">{error.message}</p>
-    );
+    return <p className="p-8 text-sm text-red-600">{error.message}</p>;
 
   return (
     <div className="flex min-h-screen bg-paper">
-      <Sidebar user={user} />
+      <Sidebar
+        user={user}
+        mobileOpen={navOpen}
+        onMobileClose={() => setNavOpen(false)}
+      />
 
-      <div className="ml-56 flex min-h-screen flex-1 flex-col">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:ml-56">
         <TopBar
           user={user}
           onAddClick={() => setModalOpen(true)}
+          onMenuClick={() => setNavOpen(true)}
           searchQuery={search}
           onSearch={setSearch}
         />
 
-        <main className="flex-1 space-y-6 p-7">
+        <main className="min-w-0 flex-1 space-y-6 px-4 py-5 sm:px-6 sm:py-6 lg:space-y-6 lg:p-7">
           {/* Stats */}
           <section>
             <div className="mb-3 flex items-end justify-between">
@@ -108,7 +112,7 @@ export default function DashboardPage() {
               </p>
               <p className="text-[11.5px] text-ink-muted">All time</p>
             </div>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
               {buildStats(apps).map((s, i) => (
                 <StatCard key={s.title} {...s} index={i} />
               ))}
@@ -125,7 +129,7 @@ export default function DashboardPage() {
                 02 — Pipeline
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-5" style={{ minHeight: 280 }}>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
               <ApplicationOverview applications={apps} />
               <ProgressChart applications={apps} />
             </div>
@@ -141,11 +145,11 @@ export default function DashboardPage() {
                 03 — Activity
               </p>
             </div>
-            <div className="grid grid-cols-5 gap-5">
-              <div className="col-span-3">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-5 lg:gap-5">
+              <div className="lg:col-span-3">
                 <RecentApplications applications={apps} />
               </div>
-              <div className="col-span-2">
+              <div className="lg:col-span-2">
                 <UpcomingPanel applications={apps} />
               </div>
             </div>
