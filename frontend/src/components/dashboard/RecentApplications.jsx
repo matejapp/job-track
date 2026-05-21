@@ -23,7 +23,7 @@ function CompanyAvatar({ name, index }) {
 
 export default function RecentApplications({ applications }) {
   const recent = [...applications]
-    .sort((a, b) => new Date(b.dateCreated) - new Date(a.dateCreated))
+    .sort((a, b) => new Date(b.dateApplied) - new Date(a.dateApplied))
     .slice(0, 5);
 
   return (

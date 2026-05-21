@@ -37,7 +37,7 @@ function CompanyAvatar({ name, index, size = "md" }) {
   );
 }
 
-const sortDate = (app) => new Date(app.dateCreated ?? app.dateApplied);
+const sortDate = (app) => new Date(app.dateApplied);
 const formatDate = (date) =>
   new Date(date).toLocaleDateString("en-US", {
     month: "short",
