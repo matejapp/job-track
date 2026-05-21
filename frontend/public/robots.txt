@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /applications
+
+Sitemap: https://job-track.app/sitemap.xml

@@ -15,6 +15,9 @@ function FieldError({ message }) {
   return <p className="mt-1 text-xs font-medium text-red-500">{message}</p>;
 }
 
+const FIELD_LABEL =
+  "mb-1.5 block text-[10.5px] font-bold uppercase tracking-[0.2em] text-ink-muted";
+
 export default function ApplicationModal({ open, onClose, onSubmit, app }) {
   const isEdit = !!app;
   const {
@@ -40,15 +43,28 @@ export default function ApplicationModal({ open, onClose, onSubmit, app }) {
     <Modal
       open={open}
       onClose={onClose}
-      title={isEdit ? "Edit Application" : "New Application"}
+      title={
+        isEdit ? (
+          <>
+            Edit{" "}
+            <span className="font-serif italic font-normal text-clay">
+              application
+            </span>
+          </>
+        ) : (
+          <>
+            New{" "}
+            <span className="font-serif italic font-normal text-clay">
+              application
+            </span>
+          </>
+        )
+      }
     >
       <form onSubmit={handleSubmit(submitForm)} className="space-y-4" noValidate>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label
-              htmlFor="companyName"
-              className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5"
-            >
+            <label htmlFor="companyName" className={FIELD_LABEL}>
               Company Name *
             </label>
             <input
@@ -60,10 +76,7 @@ export default function ApplicationModal({ open, onClose, onSubmit, app }) {
             <FieldError message={errors.companyName?.message} />
           </div>
           <div>
-            <label
-              htmlFor="position"
-              className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5"
-            >
+            <label htmlFor="position" className={FIELD_LABEL}>
               Position *
             </label>
             <input
@@ -76,12 +89,9 @@ export default function ApplicationModal({ open, onClose, onSubmit, app }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label
-              htmlFor="status"
-              className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5"
-            >
+            <label htmlFor="status" className={FIELD_LABEL}>
               Status *
             </label>
             <select id="status" className="input-field" {...register("status")}>
@@ -94,10 +104,7 @@ export default function ApplicationModal({ open, onClose, onSubmit, app }) {
             <FieldError message={errors.status?.message} />
           </div>
           <div>
-            <label
-              htmlFor="dateApplied"
-              className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5"
-            >
+            <label htmlFor="dateApplied" className={FIELD_LABEL}>
               Date Applied *
             </label>
             <input
@@ -111,10 +118,7 @@ export default function ApplicationModal({ open, onClose, onSubmit, app }) {
         </div>
 
         <div>
-          <label
-            htmlFor="applicationLink"
-            className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5"
-          >
+          <label htmlFor="applicationLink" className={FIELD_LABEL}>
             Application Link *
           </label>
           <input
@@ -128,10 +132,7 @@ export default function ApplicationModal({ open, onClose, onSubmit, app }) {
         </div>
 
         <div>
-          <label
-            htmlFor="description"
-            className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5"
-          >
+          <label htmlFor="description" className={FIELD_LABEL}>
             Notes *
           </label>
           <textarea
@@ -144,11 +145,18 @@ export default function ApplicationModal({ open, onClose, onSubmit, app }) {
           <FieldError message={errors.description?.message} />
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
-          <button type="button" className="btn-ghost" onClick={onClose}>
+        <div className="flex flex-col-reverse gap-2 border-t border-ink-rule pt-4 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+          <button
+            type="button"
+            className="btn-ghost w-full justify-center sm:w-auto"
+            onClick={onClose}
+          >
             Cancel
           </button>
-          <button type="submit" className="btn-primary">
+          <button
+            type="submit"
+            className="btn-primary w-full justify-center sm:w-auto"
+          >
             {isEdit ? "Save Changes" : "Add Application"}
           </button>
         </div>

@@ -6,23 +6,26 @@
   * {
     box-sizing: border-box;
   }
+  html, body {
+    overflow-x: hidden;
+  }
   body {
-    @apply font-sans text-slate-800 bg-[#f6f5ff];
+    @apply font-sans text-ink bg-paper;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
   ::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-200 rounded-full;
+    @apply bg-ink-rule rounded-full;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-300;
+    @apply bg-paper-deep;
   }
 }
 
@@ -43,23 +46,177 @@
   }
 
   .card {
-    @apply bg-white rounded-2xl shadow-sm border border-slate-100;
+    @apply bg-white rounded-2xl border border-ink-rule/60;
+    box-shadow: 0 1px 0 0 rgba(17, 17, 16, 0.02), 0 8px 24px -16px rgba(17, 17, 16, 0.08);
   }
 
   .input-field {
-    @apply w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800
-           placeholder:text-slate-400 bg-white
-           focus:outline-none focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400
+    @apply w-full px-4 py-2.5 rounded-xl border border-ink-rule text-sm text-ink
+           placeholder:text-ink-muted/70 bg-white
+           focus:outline-none focus:ring-2 focus:ring-clay/25 focus:border-clay
            transition-all duration-150;
   }
 
   .btn-primary {
-    @apply inline-flex items-center gap-2 px-4 py-2.5 bg-accent text-white text-sm font-semibold
-           rounded-xl hover:bg-accent-dark transition-all duration-150 active:scale-[0.97]
+    @apply inline-flex items-center gap-2 px-4 py-2.5 bg-ink text-paper text-sm font-semibold
+           rounded-xl hover:bg-clay transition-all duration-150 active:scale-[0.97]
            disabled:opacity-60 disabled:cursor-not-allowed;
   }
   .btn-ghost {
-    @apply inline-flex items-center gap-2 px-4 py-2.5 text-slate-600 text-sm font-medium
-           rounded-xl hover:bg-slate-100 transition-all duration-150 active:scale-[0.97];
+    @apply inline-flex items-center gap-2 px-4 py-2.5 text-ink-soft text-sm font-medium
+           rounded-xl hover:bg-paper-soft transition-all duration-150 active:scale-[0.97];
+  }
+
+  /* ----------  workspace (dashboard / applications) ---------- */
+
+  .wk-section-label {
+    @apply inline-flex items-center gap-2 text-[10.5px] font-semibold uppercase tracking-[0.22em] text-ink-muted;
+  }
+
+  .wk-chip {
+    @apply inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border border-ink-rule bg-paper/60 px-3 py-1.5 text-[11px] font-semibold text-ink-soft transition-colors whitespace-nowrap;
+  }
+  .wk-chip:hover {
+    @apply border-ink/40 text-ink;
+  }
+  .wk-chip-active {
+    @apply border-ink bg-ink text-paper;
+  }
+  .wk-chip-active:hover {
+    @apply border-ink bg-ink text-paper;
+  }
+
+  /* Touch-friendly icon button: at least 40px tap target on mobile, smaller on desktop */
+  .wk-icon-btn {
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-paper-soft hover:text-ink sm:h-9 sm:w-9;
+  }
+
+  /* Horizontal scrollable rail with fade mask (mobile filter pills, etc.) */
+  .wk-rail {
+    @apply -mx-1 flex gap-1.5 overflow-x-auto overflow-y-hidden px-1 pb-1;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 0.25rem;
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
+    -webkit-mask-image: linear-gradient(to right, black 0, black calc(100% - 28px), transparent 100%);
+            mask-image: linear-gradient(to right, black 0, black calc(100% - 28px), transparent 100%);
+  }
+  .wk-rail > * {
+    scroll-snap-align: start;
+  }
+  .wk-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Scale a fixed-design block to fit its container while preserving aspect ratio.
+   * Child renders at 1000px design width and scales down to 100% of container.
+   * Used for the landing-page product preview so the mockup stays crisp at any viewport.
+   */
+  .preview-fit {
+    container-type: inline-size;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1000 / 522;
+    overflow: hidden;
+  }
+  .preview-fit > * {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1000px;
+    transform-origin: top left;
+    transform: scale(calc(100cqi / 1000px));
+  }
+
+  /* ----------  marketing surface (landing / auth) ---------- */
+
+  .mk-grain {
+    position: relative;
+    isolation: isolate;
+  }
+  .mk-grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.35;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.07 0 0 0 0 0.07 0 0 0 0 0.06 0 0 0 0.5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-size: 160px 160px;
+  }
+
+  .mk-rule {
+    @apply h-px w-full bg-ink-rule;
+  }
+
+  .mk-eyebrow {
+    @apply inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-muted;
+  }
+
+  .mk-number {
+    @apply font-serif text-[13px] italic text-clay tracking-tight;
+  }
+
+  .mk-link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 100% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 250ms cubic-bezier(0.6, 0, 0.2, 1);
+  }
+  .mk-link-underline:hover {
+    background-size: 0 1px;
+    background-position: 100% 100%;
+  }
+
+  .mk-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-3.5
+           text-[13.5px] font-semibold tracking-tight text-paper transition-all duration-200
+           hover:bg-clay hover:text-paper hover:shadow-[0_18px_38px_-18px_rgba(194,65,12,0.65)]
+           active:scale-[0.98];
+  }
+
+  .mk-btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink/15 bg-transparent
+           px-6 py-3.5 text-[13.5px] font-semibold tracking-tight text-ink transition-all duration-200
+           hover:border-ink hover:bg-ink hover:text-paper active:scale-[0.98];
+  }
+
+  .mk-btn-ghost-light {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-paper/20 bg-transparent
+           px-5 py-2.5 text-[13px] font-semibold tracking-tight text-paper/85 transition-all duration-200
+           hover:bg-paper/10 hover:text-paper;
+  }
+
+  .mk-input {
+    @apply w-full rounded-none border-0 border-b border-ink/20 bg-transparent px-0 py-3
+           font-sans text-[15px] text-ink placeholder:text-ink-muted/70
+           focus:border-clay focus:outline-none focus:ring-0
+           transition-colors duration-200;
+  }
+
+  .mk-card {
+    @apply relative rounded-[20px] border border-ink-rule bg-paper transition-all duration-300;
+  }
+
+  .mk-card:hover {
+    @apply border-ink/30;
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .text-pretty  { text-wrap: pretty; }
+
+  .mask-fade-r {
+    -webkit-mask-image: linear-gradient(to right, black 70%, transparent);
+            mask-image: linear-gradient(to right, black 70%, transparent);
+  }
+  .mask-fade-b {
+    -webkit-mask-image: linear-gradient(to bottom, black 75%, transparent);
+            mask-image: linear-gradient(to bottom, black 75%, transparent);
   }
 }

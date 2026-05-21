@@ -1,77 +1,111 @@
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
-import { STATUSES } from '../../constants/statuses'
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { STATUSES } from "../../constants/statuses";
 
 const CustomTooltip = ({ active, payload }) => {
-  if (!active || !payload?.length) return null
-  const d = payload[0]
+  if (!active || !payload?.length) return null;
+  const d = payload[0];
   return (
-    <div className="bg-white shadow-xl rounded-xl px-3 py-2 border border-slate-100 text-xs pointer-events-none">
-      <p className="font-bold text-slate-800">{d.name}</p>
-      <p className="text-slate-500">{d.value} apps · {d.payload.pct}%</p>
+    <div className="pointer-events-none rounded-xl border border-ink-rule bg-white px-3 py-2 text-xs shadow-xl">
+      <p className="font-bold text-ink">{d.name}</p>
+      <p className="text-ink-muted">
+        {d.value} apps · {d.payload.pct}%
+      </p>
     </div>
-  )
-}
+  );
+};
 
 export default function ApplicationOverview({ applications }) {
-  const total = applications.length
+  const total = applications.length;
 
   const data = STATUSES.map((s) => {
-    const count = applications.filter((a) => a.status === s.value).length
+    const count = applications.filter((a) => a.status === s.value).length;
     return {
       name: s.label,
       value: count,
       color: s.color,
-      pct: total > 0 ? ((count / total) * 100).toFixed(1) : '0.0',
-    }
-  }).filter((d) => d.value > 0)
+      pct: total > 0 ? ((count / total) * 100).toFixed(1) : "0.0",
+    };
+  }).filter((d) => d.value > 0);
 
   return (
-    <div className="card p-6 flex flex-col h-full">
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="font-display font-bold text-slate-900 text-base">Application Overview</h2>
-        <span className="text-[11px] text-slate-400 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg font-medium">
-          All Time
+    <div className="card flex h-full flex-col p-5 sm:p-6">
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-ink-muted">
+            Pipeline
+          </p>
+          <h2 className="font-display text-[16px] font-bold leading-tight tracking-tight text-ink sm:text-[17px]">
+            Application{" "}
+            <span className="font-serif italic font-normal text-clay">
+              overview
+            </span>
+          </h2>
+        </div>
+        <span className="flex-shrink-0 rounded-full border border-ink-rule bg-paper/60 px-3 py-1.5 text-[10.5px] font-semibold uppercase tracking-wider text-ink-muted">
+          All time
         </span>
       </div>
 
-      <div className="flex items-center gap-6 flex-1">
+      <div className="flex flex-1 flex-col items-center gap-5 sm:flex-row sm:gap-6">
         <div className="relative flex-shrink-0">
           <ResponsiveContainer width={176} height={176}>
             <PieChart>
               <Pie
-                data={data.length ? data : [{ name: 'None', value: 1, color: '#e2e8f0' }]}
-                cx={84} cy={84}
-                innerRadius={52} outerRadius={82}
-                dataKey="value" strokeWidth={0} paddingAngle={data.length > 1 ? 2 : 0}
+                data={
+                  data.length
+                    ? data
+                    : [{ name: "None", value: 1, color: "#ebe4d2" }]
+                }
+                cx={84}
+                cy={84}
+                innerRadius={52}
+                outerRadius={82}
+                dataKey="value"
+                strokeWidth={0}
+                paddingAngle={data.length > 1 ? 2 : 0}
               >
-                {(data.length ? data : [{ color: '#e2e8f0' }]).map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
+                {(data.length ? data : [{ color: "#ebe4d2" }]).map(
+                  (entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ),
+                )}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
             </PieChart>
           </ResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="font-display text-3xl font-bold text-slate-900">{total}</span>
-            <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Total</span>
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+            <span className="font-display text-3xl font-bold tabular-nums text-ink">
+              {total}
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">
+              Total
+            </span>
           </div>
         </div>
 
-        <div className="flex-1 space-y-2.5">
+        <div className="w-full flex-1 space-y-2.5 sm:w-auto">
           {STATUSES.map((s) => {
-            const count = applications.filter((a) => a.status === s.value).length
-            const pct = total > 0 ? ((count / total) * 100).toFixed(1) : '0.0'
+            const count = applications.filter(
+              (a) => a.status === s.value,
+            ).length;
+            const pct =
+              total > 0 ? ((count / total) * 100).toFixed(1) : "0.0";
             return (
               <div key={s.value} className="flex items-center gap-2 text-xs">
-                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.color }} />
-                <span className="text-slate-500 flex-1">{s.label}</span>
-                <span className="font-bold text-slate-800 tabular-nums">{count}</span>
-                <span className="text-slate-400 w-11 text-right tabular-nums">({pct}%)</span>
+                <span
+                  className="h-2 w-2 flex-shrink-0 rounded-full"
+                  style={{ background: s.color }}
+                />
+                <span className="flex-1 text-ink-soft">{s.label}</span>
+                <span className="font-bold tabular-nums text-ink">{count}</span>
+                <span className="w-11 text-right tabular-nums text-ink-muted">
+                  ({pct}%)
+                </span>
               </div>
-            )
+            );
           })}
         </div>
       </div>
     </div>
-  )
+  );
 }

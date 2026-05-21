@@ -17,28 +17,24 @@ const buildStats = (apps) => [
   {
     title: "Total Applications",
     value: apps.length,
-    change: "12%",
     icon: Briefcase,
     gradient: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)",
   },
   {
     title: "In Progress",
     value: apps.filter((a) => !["Offer", "Rejected"].includes(a.status)).length,
-    change: "7%",
     icon: Clock,
     gradient: "linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)",
   },
   {
     title: "Interviews",
     value: apps.filter((a) => a.status === "Interview").length,
-    change: "20%",
     icon: Users,
     gradient: "linear-gradient(135deg, #f97316 0%, #f59e0b 100%)",
   },
   {
     title: "Offers",
     value: apps.filter((a) => a.status === "Offer").length,
-    change: "100%",
     icon: Trophy,
     gradient: "linear-gradient(135deg, #22c55e 0%, #10b981 100%)",
   },
@@ -47,6 +43,7 @@ const buildStats = (apps) => [
 export default function DashboardPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [navOpen, setNavOpen] = useState(false);
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -79,44 +76,84 @@ export default function DashboardPage() {
     addMutation.mutate(data);
   };
 
-  if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>{error.message}</p>;
+  if (isLoading)
+    return (
+      <p className="p-8 font-serif italic text-ink-muted">Loading…</p>
+    );
+  if (error)
+    return <p className="p-8 text-sm text-red-600">{error.message}</p>;
 
   return (
-    <div className="flex min-h-screen bg-[#f6f5ff]">
-      <Sidebar user={user} />
+    <div className="flex min-h-screen bg-paper">
+      <Sidebar
+        user={user}
+        mobileOpen={navOpen}
+        onMobileClose={() => setNavOpen(false)}
+      />
 
-      <div className="flex-1 ml-56 flex flex-col min-h-screen">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:ml-56">
         <TopBar
           user={user}
           onAddClick={() => setModalOpen(true)}
+          onMenuClick={() => setNavOpen(true)}
           searchQuery={search}
           onSearch={setSearch}
         />
 
-        <main className="flex-1 p-7 space-y-5">
+        <main className="min-w-0 flex-1 space-y-6 px-4 py-5 sm:px-6 sm:py-6 lg:space-y-6 lg:p-7">
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-4">
-            {buildStats(apps).map((s, i) => (
-              <StatCard key={s.title} {...s} index={i} />
-            ))}
-          </div>
+          <section>
+            <div className="mb-3 flex items-end justify-between">
+              <p className="wk-section-label">
+                <span className="font-serif italic normal-case text-clay">
+                  No.
+                </span>{" "}
+                01 — Overview
+              </p>
+              <p className="text-[11.5px] text-ink-muted">All time</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+              {buildStats(apps).map((s, i) => (
+                <StatCard key={s.title} {...s} index={i} />
+              ))}
+            </div>
+          </section>
 
           {/* Charts */}
-          <div className="grid grid-cols-2 gap-5" style={{ minHeight: 280 }}>
-            <ApplicationOverview applications={apps} />
-            <ProgressChart applications={apps} />
-          </div>
+          <section>
+            <div className="mb-3">
+              <p className="wk-section-label">
+                <span className="font-serif italic normal-case text-clay">
+                  No.
+                </span>{" "}
+                02 — Pipeline
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
+              <ApplicationOverview applications={apps} />
+              <ProgressChart applications={apps} />
+            </div>
+          </section>
 
           {/* Bottom */}
-          <div className="grid grid-cols-5 gap-5">
-            <div className="col-span-3">
-              <RecentApplications applications={apps} />
+          <section>
+            <div className="mb-3">
+              <p className="wk-section-label">
+                <span className="font-serif italic normal-case text-clay">
+                  No.
+                </span>{" "}
+                03 — Activity
+              </p>
             </div>
-            <div className="col-span-2">
-              <UpcomingPanel applications={apps} />
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-5 lg:gap-5">
+              <div className="lg:col-span-3">
+                <RecentApplications applications={apps} />
+              </div>
+              <div className="lg:col-span-2">
+                <UpcomingPanel applications={apps} />
+              </div>
             </div>
-          </div>
+          </section>
         </main>
       </div>
 
