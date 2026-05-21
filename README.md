@@ -2,7 +2,7 @@
 
 A full-stack job application tracker — organized pipeline, real hiring stages, and progress charts in one place.
 
-**Live:** [job-track.app](https://job-track.app)
+**Live:** [job-track.app](https://job-track.app) · **API docs:** [swagger](https://jobtrack-api-goyf.onrender.com/swagger)
 
 ---
 
