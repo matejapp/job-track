@@ -1,247 +1,173 @@
 import {
+  BarChart2,
   Briefcase,
   CalendarDays,
-  Clock,
   LayoutDashboard,
-  ListChecks,
   Plus,
-  Search,
   Settings,
-  Trophy,
-  Users,
 } from "lucide-react";
 
-const STATS = [
-  {
-    label: "Total",
-    value: 24,
-    icon: Briefcase,
-    gradient: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)",
-  },
-  {
-    label: "In progress",
-    value: 11,
-    icon: Clock,
-    gradient: "linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)",
-  },
-  {
-    label: "Interviews",
-    value: 5,
-    icon: Users,
-    gradient: "linear-gradient(135deg, #f97316 0%, #f59e0b 100%)",
-  },
-  {
-    label: "Offers",
-    value: 2,
-    icon: Trophy,
-    gradient: "linear-gradient(135deg, #22c55e 0%, #10b981 100%)",
-  },
+const APPS = [
+  { co: "L", color: "#5B4CF5", company: "Linear",    role: "Sr. Frontend Engineer", stage: "Interview", sc: "#3D3080" },
+  { co: "V", color: "#0F0F0F", company: "Vercel",     role: "Product Designer",      stage: "Applied",   sc: "#333"    },
+  { co: "S", color: "#1C9B3A", company: "Supabase",   role: "Backend Engineer",      stage: "Offer",     sc: "#145C25" },
+  { co: "F", color: "#F24E1E", company: "Figma",      role: "Design Engineer",       stage: "Rejected",  sc: "#8C2D12" },
 ];
 
-const APPLICATIONS = [
-  {
-    company: "Linear",
-    role: "Senior Frontend Engineer",
-    status: "Interview",
-    tone: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  },
-  {
-    company: "Vercel",
-    role: "Product Designer",
-    status: "Assessment",
-    tone: "bg-amber-50 text-amber-700 ring-amber-200",
-  },
-  {
-    company: "Supabase",
-    role: "Backend Engineer",
-    status: "Applied",
-    tone: "bg-sky-50 text-sky-700 ring-sky-200",
-  },
-];
+const STAGE_COLORS = {
+  Applied:   { bg: "rgba(75,108,183,0.14)",  fg: "#4b6cb7" },
+  Interview: { bg: "rgba(192,138,58,0.14)",  fg: "#c08a3a" },
+  Offer:     { bg: "rgba(47,125,79,0.14)",   fg: "#2f7d4f" },
+  Rejected:  { bg: "rgba(155,74,59,0.14)",   fg: "#9b4a3b" },
+};
 
-const UPCOMING = [
-  { when: "Today · 3pm", title: "Linear — system design round" },
-  { when: "Tomorrow", title: "Send follow-up note · Vercel" },
-  { when: "Friday", title: "Prepare take-home · Supabase" },
-];
-
-/**
- * Marketing product preview — always rendered at its full desktop layout.
- * On smaller viewports, the wrapping container (.preview-fit) scales this
- * down proportionally via CSS so it never gets cramped or rewrapped.
- */
 export default function ProductPreview() {
   return (
     <div
-      className="relative w-full overflow-hidden rounded-[14px] border border-ink-rule bg-paper shadow-[0_36px_80px_-32px_rgba(17,17,16,0.45)]"
+      className="relative w-full overflow-hidden rounded-[14px] border border-[#2a2b22] bg-[#0c0d0a] shadow-[0_36px_80px_-24px_rgba(0,0,0,0.65)]"
       aria-label="Preview of the JobTrack dashboard"
       role="img"
     >
       {/* Window chrome */}
-      <div className="flex items-center justify-between border-b border-ink-rule/70 bg-paper-soft px-4 py-2.5">
+      <div className="flex items-center justify-between border-b border-[#1e1f16] bg-[#101109] px-4 py-2.5">
         <div className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-ink/15" />
-          <span className="h-2.5 w-2.5 rounded-full bg-ink/15" />
-          <span className="h-2.5 w-2.5 rounded-full bg-ink/15" />
+          <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+          <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+          <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
         </div>
-        <div className="flex items-center gap-2 rounded-full bg-paper px-3 py-1 text-[10.5px] font-medium text-ink-muted ring-1 ring-ink-rule">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        <div className="flex items-center gap-2 rounded-full bg-white/[0.06] px-3 py-1 text-[10.5px] font-medium text-white/35 ring-1 ring-white/[0.08]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#c8ff2e]" />
           job-track.app/dashboard
         </div>
         <div className="w-12" />
       </div>
 
-      <div className="grid grid-cols-[148px_1fr] bg-[#f6f5ff]">
+      <div className="grid grid-cols-[148px_1fr]">
         {/* Sidebar */}
-        <aside className="border-r border-ink-rule/60 bg-[#0f0f23] p-3 text-white">
+        <aside className="border-r border-[#1e1f16] bg-[#0c0d0a] p-3">
           <div className="mb-5 flex items-center gap-2 px-1.5 pt-1">
-            <div className="flex h-6 w-6 items-center justify-center rounded bg-paper text-ink">
-              <span className="font-serif text-[13px] italic font-bold leading-none">
-                J
-              </span>
+            <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-[5px] bg-[#16170e] font-mono text-[12px] font-bold text-[#c8ff2e]">
+              j
             </div>
-            <span className="font-display text-[13px] font-bold tracking-tight">
-              JobTrack
-            </span>
+            <span className="text-[13px] font-semibold tracking-tight text-[#f1eee0]">JobTrack</span>
           </div>
 
-          <nav className="space-y-1 text-[11.5px]">
-            <a
-              className="flex items-center gap-2 rounded-lg px-2.5 py-2 font-semibold text-white"
-              style={{ background: "linear-gradient(135deg,#7c3aed 0%,#4f46e5 100%)" }}
-            >
+          <nav className="space-y-0.5 text-[11.5px]">
+            <div className="flex items-center gap-2 rounded-[8px] bg-[#f1eee0] px-2.5 py-2 font-semibold text-[#0c0d0a]">
               <LayoutDashboard size={13} /> Dashboard
-            </a>
-            <a className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-slate-400">
-              <ListChecks size={13} /> Applications
-            </a>
-            <a className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-slate-400">
+            </div>
+            <div className="flex items-center gap-2 rounded-[8px] px-2.5 py-2 text-[#8b897a]">
+              <Briefcase size={13} /> Applications
+              <span className="ml-auto font-mono text-[10px] text-[#5a594e]">12</span>
+            </div>
+            <div className="flex items-center gap-2 rounded-[8px] px-2.5 py-2 text-[#8b897a]">
               <CalendarDays size={13} /> Calendar
-            </a>
-            <a className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-slate-400">
-              <Settings size={13} /> Settings
-            </a>
+            </div>
+            <div className="flex items-center gap-2 rounded-[8px] px-2.5 py-2 text-[#8b897a]">
+              <BarChart2 size={13} /> Statistics
+            </div>
           </nav>
 
-          <div className="mt-6 rounded-lg border border-white/10 bg-white/5 p-2.5 text-[10.5px] text-slate-300">
-            <p className="font-semibold text-white">Next interview</p>
-            <p className="mt-1 leading-snug">Linear · 3:00pm today</p>
+          <div className="mt-5 border-t border-[#1e1f16] pt-4">
+            <p className="px-2.5 pb-2 font-mono text-[9px] uppercase tracking-[0.15em] text-[#5a594e]">Library</p>
+            {["Documents", "Contacts", "Reminders"].map((l) => (
+              <div key={l} className="flex items-center gap-2 rounded-[8px] px-2.5 py-1.5 text-[11px] text-[#5a594e]">
+                {l}
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 flex items-center gap-2 rounded-[8px] border border-[#1e1f16] bg-[#16170e] p-2">
+            <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#2a2b22] font-mono text-[10px] font-bold text-[#c8ff2e]">
+              M
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[10px] font-medium text-[#f1eee0]">Mateja P.</p>
+              <p className="truncate text-[9px] text-[#5a594e]">Free plan</p>
+            </div>
+            <Settings size={11} className="text-[#5a594e]" />
           </div>
         </aside>
 
-        {/* Main area */}
-        <div className="p-4">
+        {/* Main */}
+        <div className="bg-[#0c0d0a] p-4">
           {/* Topbar */}
           <div className="mb-4 flex items-center justify-between">
-            <div className="relative w-44">
-              <Search
-                size={11}
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
-              />
-              <div className="h-7 rounded-md border border-slate-200 bg-white pl-7 pr-2 text-[10.5px] leading-7 text-slate-400">
-                Search applications
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                className="flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[10.5px] font-semibold text-white"
-                style={{ background: "linear-gradient(135deg,#7c3aed 0%,#4f46e5 100%)" }}
-                aria-hidden
-              >
-                <Plus size={11} /> Add
-              </button>
-              <div className="h-6 w-6 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 ring-1 ring-white" />
-            </div>
+            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#8b897a]">
+              Workspace &nbsp;/&nbsp; Dashboard
+            </span>
+            <button
+              className="flex items-center gap-1.5 rounded-full bg-[#f1eee0] px-3 py-1.5 text-[10px] font-semibold text-[#0c0d0a]"
+              aria-hidden="true"
+            >
+              <Plus size={10} /> Add application
+            </button>
           </div>
 
-          {/* Stats */}
+          {/* KPI tiles */}
           <div className="mb-3 grid grid-cols-4 gap-2">
-            {STATS.map(({ label, value, icon: Icon, gradient }) => (
+            {[
+              { label: "Total",      value: 24, variant: "base"  },
+              { label: "Active",     value: 11, variant: "ink"   },
+              { label: "Interviews", value:  5, variant: "base"  },
+              { label: "Offers",     value:  2, variant: "accent"},
+            ].map(({ label, value, variant }) => (
               <div
                 key={label}
-                className="rounded-lg border border-slate-100 bg-white p-2.5 shadow-sm"
+                className="rounded-[10px] p-2.5"
+                style={{
+                  background: variant === "ink"    ? "#f1eee0"
+                            : variant === "accent" ? "#c8ff2e"
+                            : "#16170e",
+                  border: variant === "base" ? "1px solid #2a2b22" : "none",
+                }}
               >
-                <div
-                  className="mb-1.5 flex h-6 w-6 items-center justify-center rounded-md text-white"
-                  style={{ background: gradient }}
+                <p
+                  className="font-mono text-[9px] uppercase tracking-wider"
+                  style={{ color: variant === "ink" ? "#6d6c66" : variant === "accent" ? "#5a5e20" : "#8b897a" }}
                 >
-                  <Icon size={11} />
-                </div>
-                <p className="text-[9px] font-medium uppercase tracking-wider text-slate-400">
                   {label}
                 </p>
-                <p className="font-display text-base font-bold leading-tight text-slate-900">
+                <p
+                  className="text-xl font-bold tabular-nums leading-tight"
+                  style={{ color: variant === "ink" || variant === "accent" ? "#0c0d0a" : "#f1eee0" }}
+                >
                   {value}
                 </p>
               </div>
             ))}
           </div>
 
-          {/* Body */}
-          <div className="grid grid-cols-[1.45fr_1fr] gap-2.5">
-            {/* Applications card */}
-            <div className="rounded-lg border border-slate-100 bg-white p-3 shadow-sm">
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-[11px] font-bold text-slate-900">
-                  Recent applications
-                </p>
-                <p className="text-[9.5px] font-semibold text-violet-600">
-                  View all
-                </p>
-              </div>
-              <div className="space-y-1.5">
-                {APPLICATIONS.map((a) => (
-                  <div
-                    key={a.company}
-                    className="flex items-center gap-2.5 rounded-md border border-slate-100 bg-slate-50/60 px-2 py-1.5"
-                  >
-                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-white text-[10px] font-bold uppercase text-slate-700 ring-1 ring-slate-200">
-                      {a.company.slice(0, 1)}
+          {/* Applications list */}
+          <div className="rounded-[10px] border border-[#2a2b22] bg-[#16170e]">
+            <div className="flex items-center justify-between border-b border-[#2a2b22] px-3 py-2">
+              <p className="text-[11px] font-semibold text-[#f1eee0]">Recent applications</p>
+              <p className="text-[9.5px] font-semibold text-[#c8ff2e]">View all →</p>
+            </div>
+            <div className="divide-y divide-[#1a1b12]">
+              {APPS.map((a) => {
+                const s = STAGE_COLORS[a.stage] || STAGE_COLORS.Applied;
+                return (
+                  <div key={a.company} className="flex items-center gap-2.5 px-3 py-2">
+                    <div
+                      className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-[5px] font-mono text-[10px] font-bold text-white"
+                      style={{ background: a.color }}
+                    >
+                      {a.co}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[10.5px] font-semibold text-slate-900">
-                        {a.company}
-                      </p>
-                      <p className="truncate text-[9.5px] text-slate-500">
-                        {a.role}
-                      </p>
+                      <p className="truncate text-[10.5px] font-semibold text-[#f1eee0]">{a.company}</p>
+                      <p className="truncate text-[9.5px] text-[#8b897a]">{a.role}</p>
                     </div>
                     <span
-                      className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[9px] font-semibold ring-1 ${a.tone}`}
+                      className="whitespace-nowrap rounded-full px-2 py-0.5 text-[9px] font-semibold"
+                      style={{ background: s.bg, color: s.fg }}
                     >
-                      {a.status}
+                      {a.stage}
                     </span>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Upcoming card */}
-            <div className="rounded-lg border border-slate-100 bg-white p-3 shadow-sm">
-              <p className="mb-2 text-[11px] font-bold text-slate-900">
-                Upcoming
-              </p>
-              <div className="space-y-2">
-                {UPCOMING.map((u) => (
-                  <div key={u.title} className="flex items-start gap-2">
-                    <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-violet-50 text-violet-600">
-                      <CalendarDays size={10} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[9.5px] font-semibold uppercase tracking-wider text-violet-600">
-                        {u.when}
-                      </p>
-                      <p className="text-[10.5px] leading-tight text-slate-700">
-                        {u.title}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-3 rounded-md border border-dashed border-slate-200 bg-slate-50/60 p-2 text-[9.5px] text-slate-500">
-                Add a note for the next conversation.
-              </div>
+                );
+              })}
             </div>
           </div>
         </div>

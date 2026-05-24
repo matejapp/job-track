@@ -44,18 +44,16 @@ export default function App() {
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
       <ToastContainer
-        position="top-right"
-        autoClose={1000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick={false}
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
+        position="top-center"
+        autoClose={1500}
+        hideProgressBar
+        closeOnClick
+        pauseOnFocusLoss={false}
+        draggable={false}
+        pauseOnHover={false}
         theme="dark"
         transition={Bounce}
-        limit={2}
+        limit={1}
       />
     </>
   );
