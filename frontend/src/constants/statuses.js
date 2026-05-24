@@ -1,52 +1,34 @@
-export const STATUSES = [{
-    value: 'Applied',
-    label: 'Applied',
-    color: '#3b82f6',
-    bg: '#eff6ff',
-    text: '#1d4ed8'
-  },
-  {
-    value: 'Interview',
-    label: 'Interview',
-    color: '#f97316',
-    bg: '#fff7ed',
-    text: '#c2410c'
-  },
-  {
-    value: 'Offer',
-    label: 'Offer',
-    color: '#22c55e',
-    bg: '#f0fdf4',
-    text: '#15803d'
-  },
-  {
-    value: 'Rejected',
-    label: 'Rejected',
-    color: '#ef4444',
-    bg: '#fef2f2',
-    text: '#b91c1c'
-  },
-  {
-    value: 'Ghosted',
-    label: 'Ghosted',
-    color: '#a78bfa',
-    bg: '#f8fafc',
-    text: '#7c3aed'
-  },
-  {
-    value: 'Withdrawn',
-    label: 'Withdrawn',
-    color: '#94a3b8',
-    bg: '#f8fafc',
-    text: '#475569'
-  },
-]
+// Canonical stage metadata. Keys are lowercase to match the API normalizer.
+export const STAGE_META = {
+  applied:   { label: 'Applied',   color: 'var(--st-applied)',   cssClass: 'applied' },
+  interview: { label: 'Interview', color: 'var(--st-interview)', cssClass: 'interview' },
+  offer:     { label: 'Offer',     color: 'var(--st-offer)',     cssClass: 'offer' },
+  rejected:  { label: 'Rejected',  color: 'var(--st-rejected)',  cssClass: 'rejected' },
+  ghosted:   { label: 'Ghosted',   color: 'var(--st-ghosted)',   cssClass: 'ghosted' },
+  withdrawn: { label: 'Withdrawn', color: 'var(--st-withdrawn)', cssClass: 'withdrawn' },
+};
 
-export const getStatus = (value) =>
-  STATUSES.find((s) => s.value === value) ?? {
-    value,
-    label: value,
-    color: '#94a3b8',
-    bg: '#f8fafc',
-    text: '#475569',
-  };
+// The ordered list used for filter tabs and kanban columns
+export const STAGES = Object.keys(STAGE_META);
+
+// Backward-compat: legacy components may still reference STATUSES
+export const STATUSES = Object.entries(STAGE_META).map(([value, m]) => ({
+  value,
+  label: m.label,
+  color: m.color,
+  cssClass: m.cssClass,
+}));
+
+export function getStage(value) {
+  const key = (value || '').toLowerCase();
+  return STAGE_META[key] ?? STAGE_META.applied;
+}
+
+export function funnelCounts(apps) {
+  const counts = { applied: 0, interview: 0, offer: 0, rejected: 0, ghosted: 0, withdrawn: 0 };
+  apps.forEach(a => {
+    const key = (a.stage || a.status || '').toLowerCase();
+    if (key in counts) counts[key]++;
+  });
+  return counts;
+}
