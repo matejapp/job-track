@@ -16,6 +16,8 @@
     "@coreui/coreui-pro": "^5.25.1",
     "@coreui/react": "^5.11.0",
     "@coreui/react-pro": "^5.25.0",
+    "@fontsource-variable/geist": "^5.2.9",
+    "@fontsource-variable/geist-mono": "^5.2.8",
     "@hookform/resolvers": "^5.2.2",
     "@tanstack/react-query": "^5.100.11",
     "@tanstack/react-query-devtools": "^5.100.11",
