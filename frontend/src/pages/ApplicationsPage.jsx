@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Plus, Pencil, Trash2, ExternalLink, ArrowUpDown } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Pencil, Trash2, ExternalLink, ChevronDown } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Sidebar from "../components/layout/Sidebar";
+import AppShell from "../components/layout/AppShell";
 import TopBar from "../components/layout/TopBar";
-import Badge from "../components/ui/Badge";
 import ApplicationModal from "../components/modals/ApplicationModal";
-import { STATUSES } from "../constants/statuses";
+import { STAGE_META, STAGES, funnelCounts } from "../constants/statuses";
 import {
   addApplication,
   deleteApplication,
@@ -14,49 +13,35 @@ import {
   updateApplication,
 } from "../api/JobApplications";
 import { toastError, toastInfo, toastSuccess } from "../Utils/ToastUtils";
-import { useAuth } from "../../context/AuthContext";
 
-const PALETTES = [
-  "linear-gradient(135deg,#8b5cf6,#4f46e5)",
-  "linear-gradient(135deg,#3b82f6,#06b6d4)",
-  "linear-gradient(135deg,#f97316,#ec4899)",
-  "linear-gradient(135deg,#22c55e,#10b981)",
-  "linear-gradient(135deg,#f59e0b,#ef4444)",
-  "linear-gradient(135deg,#06b6d4,#8b5cf6)",
-];
+const formatDate = (d) =>
+  d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—";
 
-function CompanyAvatar({ name, index, size = "md" }) {
-  const dims = size === "lg" ? "h-11 w-11 text-base" : "h-9 w-9 text-sm";
-  return (
-    <div
-      className={`flex flex-shrink-0 items-center justify-center rounded-xl font-bold text-white ${dims}`}
-      style={{ background: PALETTES[index % PALETTES.length] }}
-    >
-      {(name || "?").charAt(0).toUpperCase()}
-    </div>
-  );
-}
-
-const sortDate = (app) => new Date(app.dateApplied);
-const formatDate = (date) =>
-  new Date(date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+const ViewToggle = ({ view, onChange }) => (
+  <div className="view-toggle">
+    {["list", "board"].map((v) => (
+      <button
+        key={v}
+        className={`view-toggle-btn${view === v ? " is-active" : ""}`}
+        onClick={() => onChange(v)}
+      >
+        {v.charAt(0).toUpperCase() + v.slice(1)}
+      </button>
+    ))}
+  </div>
+);
 
 export default function ApplicationsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedId = searchParams.get("applicationId");
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [editApp, setEditApp] = useState(null);
-  const [search, setSearch] = useState("");
-  const [activeFilter, setFilter] = useState("All");
-  const [confirmDelete, setConfirm] = useState(null);
+  const [filter, setFilter] = useState("all");
+  const [view, setView] = useState("list");
   const [sortDesc, setSortDesc] = useState(true);
-  const [navOpen, setNavOpen] = useState(false);
+  const [confirmDelete, setConfirm] = useState(null);
 
   const {
     data: applications = [],
@@ -68,45 +53,33 @@ export default function ApplicationsPage() {
     refetchOnWindowFocus: "always",
   });
 
-  const closeModal = () => {
-    setModalOpen(false);
-    setEditApp(null);
-  };
+  const closeModal = () => { setModalOpen(false); setEditApp(null); };
 
   const addMutation = useMutation({
     mutationFn: addApplication,
     onMutate: () => toastInfo("Adding application..."),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["apps"] });
-      toastSuccess("Application added");
-      closeModal();
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["apps"] }); toastSuccess("Application added"); closeModal(); },
     onError: (err) => toastError(err.message),
   });
 
   const updateMutation = useMutation({
     mutationFn: updateApplication,
     onMutate: () => toastInfo("Saving application..."),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["apps"] });
-      toastSuccess("Application updated");
-      closeModal();
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["apps"] }); toastSuccess("Application updated"); closeModal(); },
     onError: (err) => toastError(err.message),
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteApplication,
     onMutate: () => toastInfo("Deleting application..."),
-    onSuccess: (_data, deletedId) => {
+    onSuccess: (_d, deletedId) => {
       queryClient.invalidateQueries({ queryKey: ["apps"] });
       toastSuccess("Application deleted");
       setConfirm(null);
-
       if (selectedId === deletedId) {
-        const nextParams = new URLSearchParams(searchParams);
-        nextParams.delete("applicationId");
-        setSearchParams(nextParams, { replace: true });
+        const next = new URLSearchParams(searchParams);
+        next.delete("applicationId");
+        setSearchParams(next, { replace: true });
       }
     },
     onError: (err) => toastError(err.message),
@@ -114,365 +87,221 @@ export default function ApplicationsPage() {
 
   useEffect(() => {
     if (!selectedId || applications.length === 0) return;
-
-    const selectedApp = applications.find((app) => app.id === selectedId);
-    if (!selectedApp) return;
-
-    setSearch("");
-    setFilter("All");
-
-    const timer = window.setTimeout(() => {
-      document
-        .getElementById(`application-${selectedId}`)
-        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const found = applications.find((a) => a.id === selectedId);
+    if (!found) return;
+    setFilter("all");
+    const t = setTimeout(() => {
+      document.getElementById(`app-${selectedId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 0);
-
-    return () => window.clearTimeout(timer);
+    return () => clearTimeout(t);
   }, [applications, selectedId]);
 
+  const counts = useMemo(() => funnelCounts(applications), [applications]);
   const filtered = useMemo(() => {
-    return [...applications]
-      .filter((app) => activeFilter === "All" || app.status === activeFilter)
-      .filter((app) => {
-        const q = search.toLowerCase();
-        return (
-          !q ||
-          app.companyName.toLowerCase().includes(q) ||
-          app.position.toLowerCase().includes(q)
-        );
-      })
-      .sort((a, b) => {
-        const diff = sortDate(a) - sortDate(b);
-        return sortDesc ? -diff : diff;
-      });
-  }, [activeFilter, applications, search, sortDesc]);
+    const list = filter === "all" ? [...applications] : applications.filter((a) => a.stage === filter);
+    return list.sort((a, b) => {
+      const d = new Date(a.applied) - new Date(b.applied);
+      return sortDesc ? -d : d;
+    });
+  }, [filter, applications, sortDesc]);
 
-  const openAdd = () => {
-    setEditApp(null);
-    setModalOpen(true);
-  };
-
-  const openEdit = (app) => {
-    setEditApp(app);
-    setModalOpen(true);
-  };
-
+  const openAdd = () => { setEditApp(null); setModalOpen(true); };
+  const openEdit = (app, e) => { e.stopPropagation(); setEditApp(app); setModalOpen(true); };
   const handleSubmit = (form) => {
-    if (editApp) {
-      updateMutation.mutate({ id: editApp.id, form });
-      return;
-    }
+    if (editApp) { updateMutation.mutate({ id: editApp.id, form }); return; }
     addMutation.mutate(form);
   };
 
-  const handleDelete = (id) => {
-    deleteMutation.mutate(id);
-  };
+  if (isLoading) return <p style={{ padding: 32, fontStyle: "italic", color: "var(--muted)" }}>Loading…</p>;
+  if (error)     return <p style={{ padding: 32, color: "#9b4a3b" }}>{error.message}</p>;
 
-  const counts = (filter) =>
-    filter === "All"
-      ? applications.length
-      : applications.filter((app) => app.status === filter).length;
-
-  if (isLoading)
-    return <p className="p-8 font-serif italic text-ink-muted">Loading…</p>;
-  if (error)
-    return <p className="p-8 text-sm text-red-600">{error.message}</p>;
-
-  const renderActions = (app) => (
-    <div className="flex items-center gap-1">
-      <button
-        onClick={() => openEdit(app)}
-        className="wk-icon-btn"
-        title="Edit"
-        aria-label={`Edit ${app.companyName}`}
-      >
-        <Pencil size={14} />
-      </button>
-      {confirmDelete === app.id ? (
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => handleDelete(app.id)}
-            className="rounded-lg bg-red-500 px-2.5 py-1.5 text-[11px] font-bold text-white transition-colors hover:bg-red-600"
-            disabled={deleteMutation.isPending}
-          >
-            Yes
-          </button>
-          <button
-            onClick={() => setConfirm(null)}
-            className="rounded-lg bg-paper-soft px-2.5 py-1.5 text-[11px] font-bold text-ink-soft transition-colors hover:bg-paper-mid"
-            disabled={deleteMutation.isPending}
-          >
-            No
-          </button>
-        </div>
-      ) : (
-        <button
-          onClick={() => setConfirm(app.id)}
-          className="wk-icon-btn hover:bg-red-50 hover:text-red-500"
-          title="Delete"
-          aria-label={`Delete ${app.companyName}`}
-        >
-          <Trash2 size={14} />
-        </button>
-      )}
-    </div>
-  );
+  const FILTER_TABS = [
+    ["all", "All", applications.length],
+    ...STAGES.map((s) => [s, STAGE_META[s].label, counts[s]]),
+  ];
 
   return (
-    <div className="flex min-h-screen bg-paper">
-      <Sidebar
-        user={user}
-        mobileOpen={navOpen}
-        onMobileClose={() => setNavOpen(false)}
-      />
+    <AppShell>
+      <TopBar crumbs={["Workspace", "Applications"]} onAdd={openAdd} />
 
-      <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:ml-56">
-        <TopBar
-          user={user}
-          onAddClick={openAdd}
-          onMenuClick={() => setNavOpen(true)}
-          searchQuery={search}
-          onSearch={setSearch}
-        />
+      <div className="content page-enter">
+        {/* Header */}
+        <div className="content-head">
+          <div className="eyebrow">— Pipeline · {applications.length} total</div>
+          <h1>Your applications</h1>
+          <p>Filter, sort, or update inline. Drag between columns in board view.</p>
+        </div>
 
-        <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:p-7">
-          {/* Editorial header */}
-          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="wk-section-label">
-                <span className="font-serif italic normal-case text-clay">
-                  No.
-                </span>{" "}
-                01 — Pipeline
-              </p>
-              <h2 className="mt-2 font-display text-[24px] font-bold leading-tight tracking-tight text-ink sm:text-[28px]">
-                Your{" "}
-                <span className="font-serif italic font-normal text-clay">
-                  applications
-                </span>
-              </h2>
-            </div>
-            <p className="text-[12.5px] text-ink-muted">
-              <span className="font-semibold text-ink">
-                {applications.length}
-              </span>{" "}
-              total · filter, sort, or update inline.
-            </p>
+        {/* Toolbar */}
+        <div className="toolbar">
+          <div className="tabs">
+            {FILTER_TABS.map(([k, label, count]) => (
+              <button
+                key={k}
+                className={`tab${filter === k ? " is-active" : ""}`}
+                onClick={() => setFilter(k)}
+              >
+                {label} <span className="tn">{count}</span>
+              </button>
+            ))}
           </div>
+          <span className="toolbar-spacer" />
+          <button
+            className="chip"
+            onClick={() => setSortDesc((v) => !v)}
+            style={{ gap: 6 }}
+          >
+            {sortDesc ? "Newest first" : "Oldest first"}
+            <ChevronDown size={11} />
+          </button>
+          <ViewToggle view={view} onChange={setView} />
+        </div>
 
-          <div className="card overflow-hidden">
-            {/* Filter bar — horizontally scrollable on mobile */}
-            <div className="border-b border-ink-rule/70 bg-paper/40 px-4 py-3 sm:px-5">
-              <div className="wk-rail">
-                {["All", ...STATUSES.map((status) => status.value)].map(
-                  (filter) => {
-                    const active = activeFilter === filter;
-                    return (
-                      <button
-                        key={filter}
-                        onClick={() => setFilter(filter)}
-                        className={`wk-chip ${active ? "wk-chip-active" : ""}`}
-                      >
-                        {filter}
-                        <span
-                          className={`tabular-nums ${
-                            active ? "text-paper/65" : "text-ink-muted"
-                          }`}
-                        >
-                          {counts(filter)}
-                        </span>
-                      </button>
-                    );
-                  },
-                )}
-              </div>
-              <div className="mt-3 flex items-center justify-end sm:mt-2">
-                <button
-                  onClick={() => setSortDesc((value) => !value)}
-                  className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:text-ink"
+        {/* List view */}
+        {view === "list" && (
+          <div className="table">
+            <div className="tr th">
+              <span className="th-label">Company / Role</span>
+              <span className="th-label">Notes</span>
+              <span className="th-label">Status</span>
+              <span className="th-label">Applied</span>
+              <span className="th-label">Link</span>
+              <span className="th-label" style={{ textAlign: "right" }}>Actions</span>
+            </div>
+
+            {filtered.map((app) => {
+              const meta = STAGE_META[app.stage] ?? STAGE_META.applied;
+              const isSelected = app.id === selectedId;
+              return (
+                <div
+                  id={`app-${app.id}`}
+                  key={app.id}
+                  className="tr"
+                  style={isSelected ? { background: "color-mix(in oklch, var(--accent) 8%, transparent)" } : undefined}
+                  onClick={() => navigate(`/applications/${app.id}`)}
                 >
-                  <ArrowUpDown size={12} />
-                  {sortDesc ? "Newest first" : "Oldest first"}
-                </button>
-              </div>
-            </div>
-
-            {/* Desktop table header (lg+) */}
-            <div
-              className="hidden gap-4 border-b border-ink-rule/70 bg-paper-soft/40 px-6 py-3 text-[10px] font-bold uppercase tracking-wider text-ink-muted lg:grid"
-              style={{
-                gridTemplateColumns: "2.2fr 1.8fr 1.4fr 1fr 0.8fr 80px",
-              }}
-            >
-              <span>Company / Role</span>
-              <span>Notes</span>
-              <span>Status</span>
-              <span>Applied</span>
-              <span>Link</span>
-              <span className="text-right">Actions</span>
-            </div>
-
-            {/* Rows / cards */}
-            <div className="divide-y divide-ink-rule/50">
-              {filtered.map((app, index) => {
-                const isSelected = app.id === selectedId;
-                const selectedRing = isSelected
-                  ? "bg-clay/10 ring-1 ring-inset ring-clay/30"
-                  : "hover:bg-paper-soft/40";
-
-                return (
-                  <div
-                    id={`application-${app.id}`}
-                    key={app.id}
-                    className={`animate-fade-in ${selectedRing}`}
-                  >
-                    {/* ───────── Mobile card ───────── */}
-                    <div className="flex flex-col gap-3 p-4 lg:hidden">
-                      <div className="flex items-start gap-3">
-                        <CompanyAvatar
-                          name={app.companyName}
-                          index={index}
-                          size="lg"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold leading-tight text-ink">
-                            {app.position}
-                          </p>
-                          <p className="truncate text-xs text-ink-muted">
-                            {app.companyName}
-                          </p>
-                        </div>
-                        <Badge status={app.status} />
-                      </div>
-
-                      {app.description && (
-                        <p
-                          className="line-clamp-2 text-[12.5px] leading-snug text-ink-soft"
-                          title={app.description}
-                        >
-                          {app.description}
-                        </p>
-                      )}
-
-                      <div className="flex items-center justify-between gap-3 pt-1">
-                        <div className="flex items-center gap-3 text-[12px] text-ink-muted">
-                          <span className="tabular-nums">
-                            {formatDate(app.dateApplied)}
-                          </span>
-                          {app.applicationLink && (
-                            <a
-                              href={app.applicationLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 font-semibold text-ink underline decoration-clay decoration-2 underline-offset-4 hover:text-clay"
-                            >
-                              <ExternalLink size={12} /> Open
-                            </a>
-                          )}
-                        </div>
-                        {renderActions(app)}
-                      </div>
+                  <div className="td-role">
+                    <div className="logo" style={{ background: app.color }} aria-hidden="true">
+                      {app.logo}
                     </div>
-
-                    {/* ───────── Desktop row ───────── */}
-                    <div
-                      className="hidden items-center gap-4 px-6 py-3.5 transition-colors lg:grid"
-                      style={{
-                        gridTemplateColumns:
-                          "2.2fr 1.8fr 1.4fr 1fr 0.8fr 80px",
-                      }}
-                    >
-                      <div className="flex min-w-0 items-center gap-3">
-                        <CompanyAvatar name={app.companyName} index={index} />
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold leading-tight text-ink">
-                            {app.position}
-                          </p>
-                          <p className="truncate text-xs text-ink-muted">
-                            {app.companyName}
-                          </p>
-                        </div>
-                      </div>
-
-                      <p className="truncate text-xs text-ink-soft">
-                        {app.description || (
-                          <span className="font-serif italic text-ink-muted">
-                            —
-                          </span>
-                        )}
-                      </p>
-
-                      <Badge status={app.status} />
-
-                      <span className="text-xs tabular-nums text-ink-soft">
-                        {formatDate(app.dateApplied)}
-                      </span>
-
-                      <span>
-                        {app.applicationLink ? (
-                          <a
-                            href={app.applicationLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs font-semibold text-ink underline decoration-clay decoration-2 underline-offset-4 transition-colors hover:text-clay"
-                          >
-                            <ExternalLink size={11} /> Open
-                          </a>
-                        ) : (
-                          <span className="font-serif italic text-xs text-ink-muted">
-                            —
-                          </span>
-                        )}
-                      </span>
-
-                      <div className="flex items-center justify-end">
-                        {renderActions(app)}
-                      </div>
+                    <div>
+                      <div className="role-title">{app.role}</div>
+                      <div className="role-co">{app.name}{app.location ? ` · ${app.location}` : ""}</div>
                     </div>
                   </div>
-                );
-              })}
 
-              {filtered.length === 0 && (
-                <div className="px-6 py-14 text-center">
-                  <p className="mb-4 font-serif text-base italic text-ink-muted">
-                    {search || activeFilter !== "All"
-                      ? "No applications match your filter."
-                      : "No applications yet."}
-                  </p>
-                  <button onClick={openAdd} className="btn-primary">
-                    <Plus size={14} /> Add your first application
-                  </button>
+                  <div className="td-notes">{app.notes || <span style={{ fontStyle: "italic", opacity: 0.35 }}>—</span>}</div>
+
+                  <div>
+                    <span className={`pill ${app.stage}`} aria-label={meta.label}>
+                      <span className="pdot" />
+                      {meta.label}
+                    </span>
+                  </div>
+
+                  <div className="td-date">{formatDate(app.applied)}</div>
+
+                  <div>
+                    {app.applicationLink ? (
+                      <a
+                        href={app.applicationLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="td-link"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ExternalLink size={11} /> Open
+                      </a>
+                    ) : (
+                      <span style={{ fontStyle: "italic", opacity: 0.35 }}>—</span>
+                    )}
+                  </div>
+
+                  <div className="td-actions" onClick={(e) => e.stopPropagation()}>
+                    <button className="iconbtn" onClick={(e) => openEdit(app, e)} title="Edit" aria-label={`Edit ${app.name}`}>
+                      <Pencil size={13} />
+                    </button>
+                    {confirmDelete === app.id ? (
+                      <div style={{ display: "flex", gap: 4 }}>
+                        <button className="del-yes" onClick={() => deleteMutation.mutate(app.id)} disabled={deleteMutation.isPending}>
+                          Delete
+                        </button>
+                        <button className="iconbtn" onClick={() => setConfirm(null)}>✕</button>
+                      </div>
+                    ) : (
+                      <button className="iconbtn iconbtn-danger" onClick={() => setConfirm(app.id)} title="Delete" aria-label={`Delete ${app.name}`}>
+                        <Trash2 size={13} />
+                      </button>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
+              );
+            })}
 
-            {/* Footer */}
-            {filtered.length > 0 && (
-              <div className="flex flex-col gap-3 border-t border-ink-rule/70 bg-paper/40 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <p className="text-xs text-ink-muted">
-                  Showing{" "}
-                  <span className="font-semibold text-ink">
-                    {filtered.length}
-                  </span>{" "}
-                  of{" "}
-                  <span className="font-semibold text-ink">
-                    {applications.length}
-                  </span>{" "}
-                  applications
+            {filtered.length === 0 && (
+              <div style={{ padding: "60px 24px", textAlign: "center" }}>
+                <p style={{ fontStyle: "italic", color: "var(--muted)", marginBottom: 16 }}>
+                  {filter !== "all" ? "No applications match this filter." : "No applications yet."}
                 </p>
-                <button
-                  onClick={openAdd}
-                  className="btn-primary self-end sm:self-auto"
-                  style={{ padding: "6px 14px" }}
-                >
-                  <Plus size={13} /> Add New
-                </button>
+                <button className="btn btn-dark btn-sm" onClick={openAdd}>Add your first application</button>
               </div>
             )}
           </div>
-        </main>
+        )}
+
+        {/* Board view */}
+        {view === "board" && (
+          <div className="kanban">
+            {STAGES.map((stage) => {
+              const meta = STAGE_META[stage];
+              const cards = applications.filter((a) => a.stage === stage);
+              return (
+                <div className="kcol" key={stage}>
+                  <div className="kcol-head">
+                    <span className="ttl">
+                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: meta.color, display: "inline-block" }} />
+                      {meta.label}
+                    </span>
+                    <span className="cnt">{cards.length}</span>
+                  </div>
+                  {cards.map((a) => (
+                    <div
+                      className="kcard"
+                      key={a.id}
+                      onClick={() => navigate(`/applications/${a.id}`)}
+                    >
+                      <div className="ktop">
+                        <div className="logo logo-sm" style={{ background: a.color }} aria-hidden="true">{a.logo}</div>
+                        <span style={{ fontSize: 12, color: "var(--muted)" }}>{a.name}</span>
+                      </div>
+                      <div className="ktitle">{a.role}</div>
+                      {a.location && <div className="ksub">{a.location}</div>}
+                      <div className="kfoot">
+                        <span className="kdate">{formatDate(a.applied)}</span>
+                        <div style={{ display: "flex", gap: 4 }}>
+                          <button
+                            className="iconbtn"
+                            style={{ width: 22, height: 22 }}
+                            onClick={(e) => openEdit(a, e)}
+                            title="Edit"
+                            aria-label={`Edit ${a.name}`}
+                          >
+                            <Pencil size={11} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {cards.length === 0 && (
+                    <div style={{ padding: "20px 8px", textAlign: "center", color: "var(--muted)", fontSize: 12 }}>
+                      No applications
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <ApplicationModal
@@ -481,6 +310,6 @@ export default function ApplicationsPage() {
         onSubmit={handleSubmit}
         app={editApp}
       />
-    </div>
+    </AppShell>
   );
 }
