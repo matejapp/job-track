@@ -1,14 +1,16 @@
-import { getStatus } from '../../constants/statuses'
+import { getStage } from '../../constants/statuses'
 
 export default function Badge({ status, size = 'md' }) {
-  const s  = getStatus(status)
-  const sz = size === 'sm' ? 'text-[10px] px-1.5 py-0.5' : 'text-xs px-2.5 py-1'
+  const meta = getStage(status)
+  const sz = size === 'sm' ? { fontSize: 10, padding: '2px 8px' } : { fontSize: 12, padding: '3px 10px' }
   return (
     <span
-      className={`inline-flex items-center font-semibold rounded-full whitespace-nowrap ${sz}`}
-      style={{ backgroundColor: s.bg, color: s.text }}
+      className={`pill ${meta.cssClass}`}
+      style={sz}
+      aria-label={meta.label}
     >
-      {s.label}
+      <span className="pdot" />
+      {meta.label}
     </span>
   )
 }
