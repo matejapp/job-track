@@ -1,57 +1,69 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { getJobApplications } from "../api/JobApplications";
-import { STAGE_META } from "../constants/statuses";
-import AppShell from "../components/layout/AppShell";
-import TopBar from "../components/layout/TopBar";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ChevronLeft, ChevronDown, Star, Link as LinkIcon,
-  Plus, Check, ExternalLink,
+  Plus, Check, ExternalLink, Pencil, Trash2,
 } from "lucide-react";
+import AppShell from "../components/layout/AppShell";
+import TopBar from "../components/layout/TopBar";
+import ApplicationModal from "../components/modals/ApplicationModal";
+import { getJobApplications, updateApplication, deleteApplication } from "../api/JobApplications";
+import { STAGE_META, STAGES } from "../constants/statuses";
+import { toastSuccess, toastError, toastInfo } from "../Utils/ToastUtils";
 
 const fmtDate = (d, opts = { month: "short", day: "numeric", year: "numeric" }) =>
-  d && d !== "TBD" ? new Date(d).toLocaleDateString("en-US", opts) : "TBD";
+  d && d !== "TBD" ? new Date(d).toLocaleDateString("en-US", opts) : "—";
 
 const STAGE_STEPS = [
-  { key: "applied",   label: "Applied" },
+  { key: "applied",   label: "Applied"   },
   { key: "interview", label: "Interview" },
-  { key: "offer",     label: "Offer" },
-  { key: "done",      label: "Decision" },
+  { key: "offer",     label: "Offer"     },
+  { key: "done",      label: "Decision"  },
 ];
 
+// ─── Build PUT payload from normalized app ────────────────────────────────────
+function buildForm(app, overrides = {}) {
+  return {
+    companyName:     app.companyName     ?? "",
+    position:        app.position        ?? "",
+    applicationLink: app.applicationLink ?? "",
+    status:          app.status          ?? "Applied",
+    description:     app.description     ?? "",
+    dateApplied:     app.dateApplied
+                       ? app.dateApplied.slice(0, 10)
+                       : new Date().toISOString().slice(0, 10),
+    ...overrides,
+  };
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
 function StageTracker({ stage }) {
   const stageOrder = ["applied", "interview", "offer"];
   const currentIdx = stageOrder.indexOf(stage);
-  const doneIdx = currentIdx >= 0 ? currentIdx : -1;
 
   return (
     <div className="card">
       <div className="card-head">
         <h3><span className="lbl">A</span> Stage tracker</h3>
-        <span className="t-mono">{doneIdx + 1} of {STAGE_STEPS.length} steps</span>
+        <span className="t-mono">{Math.max(currentIdx + 1, 0)} of {STAGE_STEPS.length} steps</span>
       </div>
       <div className="stage-tracker">
-        <div
-          className="stage-track-line"
-          style={{ left: "12.5%", right: "12.5%" }}
-        />
+        <div className="stage-track-line" style={{ left: "12.5%", right: "12.5%" }} />
         <div
           className="stage-track-fill"
           style={{
             left: "12.5%",
-            width: doneIdx >= 0 ? `${((doneIdx + 0.5) / STAGE_STEPS.length) * 75}%` : "0%",
+            width: currentIdx >= 0 ? `${((currentIdx + 0.5) / STAGE_STEPS.length) * 75}%` : "0%",
           }}
         />
         {STAGE_STEPS.map((step, i) => {
-          const done = i <= doneIdx;
-          const current = i === doneIdx;
+          const done    = i <= currentIdx;
+          const current = i === currentIdx;
           return (
             <div key={step.key} className="stage-step">
-              <div
-                className={`stage-step-circle${done ? " done" : ""}${current ? " current" : ""}`}
-              >
-                {i < doneIdx ? <Check size={14} strokeWidth={2.5} /> : i + 1}
+              <div className={`stage-step-circle${done ? " done" : ""}${current ? " current" : ""}`}>
+                {i < currentIdx ? <Check size={14} strokeWidth={2.5} /> : i + 1}
               </div>
               <div className="stage-step-label">{step.label}</div>
             </div>
@@ -64,19 +76,16 @@ function StageTracker({ stage }) {
 
 function Timeline({ stage }) {
   const events = [
-    { title: "Applied", date: null, note: "Application submitted.", done: true },
-    { title: "Recruiter screen", date: null, note: "Awaiting contact from recruiter.", done: stage !== "applied" },
-    { title: "Interviews", date: null, note: stage === "interview" ? "Interview stage — prepare thoroughly." : "Not yet scheduled.", current: stage === "interview" },
-    { title: "Offer / Decision", date: null, note: stage === "offer" ? "Offer received. Review carefully." : "Awaiting outcome.", pending: stage !== "offer" },
+    { title: "Applied",          done: true,                     note: "Application submitted." },
+    { title: "Recruiter screen", done: stage !== "applied",      note: stage !== "applied" ? "Recruiter contact made." : "Awaiting recruiter contact." },
+    { title: "Interviews",       current: stage === "interview", note: stage === "interview" ? "Interview stage — prepare thoroughly." : stage === "offer" ? "Completed." : "Not yet scheduled." },
+    { title: "Offer / Decision", current: stage === "offer",     note: stage === "offer" ? "Offer received. Review carefully." : "Awaiting outcome.", pending: !["offer"].includes(stage) },
   ];
 
   return (
     <div className="card">
       <div className="card-head">
         <h3><span className="lbl">B</span> Timeline</h3>
-        <button className="chip" style={{ gap: 5 }}>
-          <Plus size={11} /> Add event
-        </button>
       </div>
       <div className="timeline">
         {events.map((e, i) => (
@@ -84,7 +93,6 @@ function Timeline({ stage }) {
             <div className={`tl-mark${e.done ? " done" : e.current ? " current" : ""}`} />
             <div className="tl-body">
               <div className="ttl">{e.title}</div>
-              {e.date && <div className="date">{fmtDate(e.date, { weekday: "short", month: "short", day: "numeric" })}</div>}
               <div className="note">{e.note}</div>
             </div>
           </div>
@@ -94,32 +102,44 @@ function Timeline({ stage }) {
   );
 }
 
-function Notes({ app }) {
-  const [note, setNote] = useState("");
+function Notes({ app, onSave, pending }) {
+  const [text, setText] = useState("");
+
+  const handleSave = () => {
+    if (!text.trim()) return;
+    const combined = app.notes
+      ? `${app.notes.trim()}\n\n${text.trim()}`
+      : text.trim();
+    onSave(combined);
+    setText("");
+  };
+
   return (
     <div className="card">
       <div className="card-head">
         <h3><span className="lbl">C</span> Notes</h3>
       </div>
-      <div style={{ fontSize: 14, lineHeight: 1.65, color: "var(--ink-2)" }}>
-        {app.notes ? (
-          <p style={{ margin: 0 }}>{app.notes}</p>
-        ) : (
-          <p style={{ margin: 0, fontStyle: "italic", color: "var(--muted)" }}>No notes yet.</p>
-        )}
+      <div style={{ fontSize: 14, lineHeight: 1.65, color: "var(--ink-2)", whiteSpace: "pre-wrap" }}>
+        {app.notes
+          ? <p style={{ margin: 0 }}>{app.notes}</p>
+          : <p style={{ margin: 0, fontStyle: "italic", color: "var(--muted)" }}>No notes yet.</p>
+        }
       </div>
       <div className="note-composer">
-        <div className="note-avatar">
-          {(app.name ?? "?").charAt(0).toUpperCase()}
-        </div>
+        <div className="note-avatar">{(app.name ?? "?").charAt(0).toUpperCase()}</div>
         <input
           className="note-input"
           placeholder="Add a note…"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSave(); } }}
         />
-        <button className="btn btn-dark btn-sm" disabled={!note.trim()} onClick={() => setNote("")}>
-          Save
+        <button
+          className="btn btn-dark btn-sm"
+          disabled={!text.trim() || pending}
+          onClick={handleSave}
+        >
+          {pending ? "Saving…" : "Save"}
         </button>
       </div>
     </div>
@@ -130,7 +150,6 @@ function DetailSide({ app }) {
   const meta = STAGE_META[app.stage] ?? STAGE_META.applied;
   return (
     <>
-      {/* Details */}
       <div className="card">
         <h3 style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 500 }}>Details</h3>
         <div className="meta-list">
@@ -156,21 +175,17 @@ function DetailSide({ app }) {
             <span className="k">Stage</span>
             <span className="v">
               <span className={`pill ${app.stage}`} aria-label={meta.label}>
-                <span className="pdot" />
-                {meta.label}
+                <span className="pdot" />{meta.label}
               </span>
             </span>
           </div>
           <div className="meta-row">
             <span className="k">Applied</span>
-            <span className="v t-mono" style={{ fontSize: 12 }}>
-              {fmtDate(app.applied)}
-            </span>
+            <span className="v t-mono" style={{ fontSize: 12 }}>{fmtDate(app.applied)}</span>
           </div>
         </div>
       </div>
 
-      {/* Resume sent */}
       {app.resumeVersion && (
         <div className="card">
           <h3 style={{ margin: "0 0 12px", fontSize: 13, fontWeight: 500 }}>Resume sent</h3>
@@ -184,35 +199,84 @@ function DetailSide({ app }) {
           </div>
         </div>
       )}
-
-      {/* Next reminder — dark card */}
-      <div className="card" style={{ background: "var(--ink)", borderColor: "var(--ink)", color: "var(--paper)" }}>
-        <h3 style={{ margin: "0 0 10px", fontSize: 13, fontWeight: 500, color: "var(--accent)" }}>
-          Next reminder
-        </h3>
-        <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: "-0.02em" }}>
-          {app.stage === "interview" ? "Prep interview" : "Follow up"}
-        </div>
-        <div style={{ marginTop: 6, fontSize: 13, color: "color-mix(in oklch, var(--paper) 55%, transparent)" }}>
-          Set a date to be reminded
-        </div>
-        <div style={{ marginTop: 14, display: "flex", gap: 8 }}>
-          <button className="btn btn-primary btn-sm">Snooze</button>
-          <button
-            className="btn btn-ghost btn-sm"
-            style={{ color: "var(--paper)", borderColor: "color-mix(in oklch, var(--paper) 20%, transparent)" }}
-          >
-            Reschedule
-          </button>
-        </div>
-      </div>
     </>
   );
 }
 
+// ─── Move-stage dropdown ──────────────────────────────────────────────────────
+function MoveStageDropdown({ currentStage, onMove, pending }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button
+        className="btn btn-ghost btn-sm"
+        style={{ gap: 5 }}
+        onClick={() => setOpen((v) => !v)}
+        disabled={pending}
+      >
+        Move stage <ChevronDown size={12} />
+      </button>
+
+      {open && (
+        <>
+          {/* backdrop */}
+          <div
+            style={{ position: "fixed", inset: 0, zIndex: 9 }}
+            onClick={() => setOpen(false)}
+          />
+          {/* menu */}
+          <div style={{
+            position: "absolute",
+            top: "calc(100% + 6px)",
+            right: 0,
+            zIndex: 10,
+            background: "var(--surface)",
+            border: "1px solid var(--line)",
+            borderRadius: "var(--r-md)",
+            boxShadow: "0 8px 24px -8px rgba(0,0,0,0.28)",
+            minWidth: 160,
+            overflow: "hidden",
+          }}>
+            {STAGES.filter((s) => s !== currentStage).map((s, i, arr) => {
+              const m = STAGE_META[s];
+              return (
+                <button
+                  key={s}
+                  onClick={() => { onMove(s); setOpen(false); }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 9,
+                    width: "100%",
+                    padding: "9px 14px",
+                    fontSize: 13,
+                    textAlign: "left",
+                    borderBottom: i < arr.length - 1 ? "1px solid var(--line)" : "none",
+                    transition: "background .12s ease",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "color-mix(in oklch, var(--ink) 5%, transparent)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                >
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: m.color, flexShrink: 0 }} />
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function ApplicationDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   const { data: apps = [], isLoading } = useQuery({
     queryKey: ["apps"],
@@ -220,6 +284,41 @@ export default function ApplicationDetailPage() {
   });
 
   const app = apps.find((a) => String(a.id) === String(id));
+
+  const updateMutation = useMutation({
+    mutationFn: updateApplication,
+    onMutate: () => toastInfo("Saving…"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["apps"] });
+      toastSuccess("Saved");
+      setEditOpen(false);
+    },
+    onError: (err) => toastError(err.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteApplication,
+    onMutate: () => toastInfo("Deleting…"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["apps"] });
+      toastSuccess("Application deleted");
+      navigate("/applications", { replace: true });
+    },
+    onError: (err) => toastError(err.message),
+  });
+
+  const moveStage = (newStage) => {
+    const newStatus = newStage.charAt(0).toUpperCase() + newStage.slice(1);
+    updateMutation.mutate({ id: app.id, form: buildForm(app, { status: newStatus }) });
+  };
+
+  const saveNotes = (combined) => {
+    updateMutation.mutate({ id: app.id, form: buildForm(app, { description: combined }) });
+  };
+
+  const handleEdit = (form) => {
+    updateMutation.mutate({ id: app.id, form });
+  };
 
   if (isLoading) return <p style={{ padding: 32, fontStyle: "italic", color: "var(--muted)" }}>Loading…</p>;
 
@@ -237,11 +336,7 @@ export default function ApplicationDetailPage() {
           <>
             {/* Header */}
             <div className="detail-head">
-              <div
-                className="logo logo-lg"
-                style={{ background: app.color }}
-                aria-hidden="true"
-              >
+              <div className="logo logo-lg" style={{ background: app.color }} aria-hidden="true">
                 {app.logo}
               </div>
               <div style={{ flex: 1 }}>
@@ -257,8 +352,8 @@ export default function ApplicationDetailPage() {
                   </span>
                 </div>
               </div>
+
               <div className="actions">
-                <button className="chip" style={{ gap: 6 }}><Star size={13} /> Star</button>
                 {app.applicationLink && (
                   <a
                     href={app.applicationLink}
@@ -270,12 +365,42 @@ export default function ApplicationDetailPage() {
                     <LinkIcon size={13} /> Job posting
                   </a>
                 )}
-                <button className="btn btn-ghost btn-sm" style={{ gap: 5 }}>
-                  Move stage <ChevronDown size={12} />
+
+                <MoveStageDropdown
+                  currentStage={app.stage}
+                  onMove={moveStage}
+                  pending={updateMutation.isPending}
+                />
+
+                <button
+                  className="chip"
+                  style={{ gap: 6 }}
+                  onClick={() => setEditOpen(true)}
+                >
+                  <Pencil size={13} /> Edit
                 </button>
-                <button className="btn btn-dark btn-sm" style={{ gap: 5 }}>
-                  Log activity <Plus size={13} />
-                </button>
+
+                {deleteConfirm ? (
+                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    <button
+                      className="del-yes"
+                      onClick={() => deleteMutation.mutate(app.id)}
+                      disabled={deleteMutation.isPending}
+                    >
+                      Confirm delete
+                    </button>
+                    <button className="iconbtn" onClick={() => setDeleteConfirm(false)}>✕</button>
+                  </div>
+                ) : (
+                  <button
+                    className="iconbtn iconbtn-danger"
+                    onClick={() => setDeleteConfirm(true)}
+                    title="Delete application"
+                    aria-label="Delete application"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
               </div>
             </div>
 
@@ -284,7 +409,7 @@ export default function ApplicationDetailPage() {
               <div className="detail-main">
                 <StageTracker stage={app.stage} />
                 <Timeline stage={app.stage} />
-                <Notes app={app} />
+                <Notes app={app} onSave={saveNotes} pending={updateMutation.isPending} />
               </div>
               <div className="detail-side">
                 <DetailSide app={app} />
@@ -293,13 +418,24 @@ export default function ApplicationDetailPage() {
           </>
         ) : (
           <div style={{ padding: "60px 0", textAlign: "center" }}>
-            <p style={{ color: "var(--muted)", fontStyle: "italic", marginBottom: 16 }}>Application not found.</p>
+            <p style={{ color: "var(--muted)", fontStyle: "italic", marginBottom: 16 }}>
+              Application not found.
+            </p>
             <button className="btn btn-dark btn-sm" onClick={() => navigate("/applications")}>
               Back to applications
             </button>
           </div>
         )}
       </div>
+
+      {app && (
+        <ApplicationModal
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          onSubmit={handleEdit}
+          app={app}
+        />
+      )}
     </AppShell>
   );
 }
