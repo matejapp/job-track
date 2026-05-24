@@ -1,42 +1,27 @@
 import { toast, Bounce } from "react-toastify";
 
+const OPTS = {
+  position: "top-center",
+  autoClose: 1500,
+  hideProgressBar: true,
+  closeOnClick: true,
+  pauseOnHover: false,
+  draggable: false,
+  theme: "dark",
+  transition: Bounce,
+};
+
 export const toastSuccess = (message) => {
-  toast.success(message, {
-    position: "top-center",
-    autoClose: 1000,
-    hideProgressBar: false,
-    closeOnClick: false,
-    pauseOnHover: false,
-    draggable: true,
-    progress: undefined,
-    theme: "dark",
-    transition: Bounce,
-  });
+  toast.dismiss();
+  toast.success(message, OPTS);
 };
 
 export const toastError = (message) => {
-  toast.error(message, {
-    position: "top-center",
-    autoClose: 1000,
-    hideProgressBar: false,
-    closeOnClick: false,
-    pauseOnHover: false,
-    draggable: true,
-    progress: undefined,
-    theme: "dark",
-    transition: Bounce,
-  });
+  toast.dismiss();
+  toast.error(message, { ...OPTS, autoClose: 3000 });
 };
 
 export const toastInfo = (message) => {
-  toast.info(message, {
-    position: "top-center",
-    autoClose: 1000,
-    hideProgressBar: false,
-    closeOnClick: false,
-    pauseOnHover: false,
-    draggable: true,
-    progress: undefined,
-    theme: "dark",
-  });
+  toast.dismiss();
+  toast.info(message, OPTS);
 };

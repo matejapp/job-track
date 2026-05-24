@@ -8,15 +8,20 @@
     <!-- Theme init: runs sync before CSS to prevent flash -->
     <script>
       (function() {
-        var t = localStorage.getItem('jt-theme') || 'dark';
+        var mode = localStorage.getItem('jt-theme') || 'dark';
+        var resolved = mode === 'system'
+          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : mode;
         var d = localStorage.getItem('jt-density') || 'default';
-        var a = localStorage.getItem('jt-accent') || '#c8ff2e';
+        var accent;
+        try { accent = JSON.parse(localStorage.getItem('jt-accent')); } catch(e) {}
+        var a = (accent && accent.hex) || '#c8ff2e';
+        var ink = (accent && accent.ink) || '#0c0c0d';
         var el = document.documentElement;
-        el.setAttribute('data-theme', t);
+        el.setAttribute('data-theme', resolved);
         el.setAttribute('data-density', d);
         el.style.setProperty('--accent', a);
-        var bright = ['#c8ff2e','#ffd43d'].includes(a.toLowerCase());
-        el.style.setProperty('--accent-ink', bright ? '#0c0c0d' : '#ffffff');
+        el.style.setProperty('--accent-ink', ink);
       })();
     </script>
     <meta

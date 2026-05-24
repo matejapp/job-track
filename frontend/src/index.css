@@ -55,6 +55,18 @@
     color-scheme: dark;
   }
 
+  /* In dark mode --ink flips to warm-white; elements that use it as a
+     background paired with --accent (lime) become near-invisible.
+     Override those to use --surface (dark) so lime text stays legible. */
+  [data-theme="dark"] .brand-mark,
+  [data-theme="dark"] .sidebar-user .avatar,
+  [data-theme="dark"] .stage-step-circle.done,
+  [data-theme="dark"] .stage-step-circle.current,
+  [data-theme="dark"] .note-avatar {
+    background: var(--surface);
+    border-color: var(--line-2);
+  }
+
   /* Select option colors follow the surface bg in dark mode */
   select option { background: var(--surface); color: var(--ink); }
 
@@ -819,7 +831,7 @@
     cursor: pointer;
     transition: background .15s ease, border-color .15s ease;
   }
-  .todo-check.is-done { background: var(--ink); border-color: var(--ink); color: var(--accent); }
+  .todo-check.is-done { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
   .todo-row.is-done   { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line-2); }
   .todo-meta { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 
@@ -979,6 +991,7 @@
   .kcol-head .ttl { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
   .kcol-head .cnt { font-family: var(--mono); font-size: 11px; color: var(--muted); }
   .kcard {
+    cursor: grab;
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 10px;
@@ -1448,6 +1461,7 @@
     display: grid;
     gap: 16px;
     max-width: 640px;
+    margin: 0 auto;
   }
   .settings-section {
     display: flex;
