@@ -15,7 +15,7 @@ export default function AuthShell({ title, subtitle, children, footer, eyebrow }
     <main className="min-h-screen bg-paper font-sans text-ink antialiased">
       <div className="grid min-h-screen lg:grid-cols-[1.05fr_1fr]">
         {/* Left panel */}
-        <section className="relative hidden overflow-hidden bg-ink px-10 py-9 text-paper lg:flex lg:flex-col lg:justify-between">
+        <section className="relative hidden overflow-hidden px-10 py-9 lg:flex lg:flex-col lg:justify-between" style={{ background: "#0c0d0a", color: "#f1eee0" }}>
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_15%,rgba(194,65,12,0.22),transparent_45%),radial-gradient(circle_at_80%_85%,rgba(31,58,44,0.32),transparent_55%)]" />
           <div className="pointer-events-none absolute inset-0 opacity-[0.06] [background-image:radial-gradient(circle_at_2px_2px,#f5f0e6_1px,transparent_0)] [background-size:32px_32px]" />
 
