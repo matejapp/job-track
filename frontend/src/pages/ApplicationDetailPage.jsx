@@ -2,13 +2,15 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  ChevronLeft, ChevronDown, Star, Link as LinkIcon,
+  ChevronLeft, ChevronDown, Link as LinkIcon,
   Plus, Check, ExternalLink, Pencil, Trash2,
 } from "lucide-react";
 import AppShell from "../components/layout/AppShell";
 import TopBar from "../components/layout/TopBar";
 import ApplicationModal from "../components/modals/ApplicationModal";
 import { getJobApplications, updateApplication, deleteApplication } from "../api/JobApplications";
+import { getNotes, createNote, updateNote, deleteNote } from "../api/Notes";
+import { getActivitiesByJob, createActivity, toggleActivityComplete, deleteActivity } from "../api/Activities";
 import { STAGE_META, STAGES } from "../constants/statuses";
 import { toastSuccess, toastError, toastInfo } from "../Utils/ToastUtils";
 
@@ -22,7 +24,13 @@ const STAGE_STEPS = [
   { key: "done",      label: "Decision"  },
 ];
 
-// ─── Build PUT payload from normalized app ────────────────────────────────────
+const IMPORTANCE_META = {
+  0: { label: "Low",    color: "#6d6c66" },
+  1: { label: "Medium", color: "#c08a3a" },
+  2: { label: "High",   color: "#4b6cb7" },
+  3: { label: "Urgent", color: "#9b4a3b" },
+};
+
 function buildForm(app, overrides = {}) {
   return {
     companyName:     app.companyName     ?? "",
@@ -102,16 +110,49 @@ function Timeline({ stage }) {
   );
 }
 
-function Notes({ app, onSave, pending }) {
+function Notes({ jobId, companyInitial }) {
+  const queryClient = useQueryClient();
   const [text, setText] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState("");
+
+  const { data: notes = [], isLoading } = useQuery({
+    queryKey: ["notes", jobId],
+    queryFn: () => getNotes(jobId),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: createNote,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes", jobId] });
+      setText("");
+    },
+    onError: (err) => toastError(err.message),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: updateNote,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes", jobId] });
+      setEditingId(null);
+    },
+    onError: (err) => toastError(err.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteNote,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notes", jobId] }),
+    onError: (err) => toastError(err.message),
+  });
 
   const handleSave = () => {
     if (!text.trim()) return;
-    const combined = app.notes
-      ? `${app.notes.trim()}\n\n${text.trim()}`
-      : text.trim();
-    onSave(combined);
-    setText("");
+    createMutation.mutate({ jobId, content: text.trim() });
+  };
+
+  const handleUpdate = (id) => {
+    if (!editText.trim()) return;
+    updateMutation.mutate({ jobId, id, content: editText.trim() });
   };
 
   return (
@@ -119,14 +160,79 @@ function Notes({ app, onSave, pending }) {
       <div className="card-head">
         <h3><span className="lbl">C</span> Notes</h3>
       </div>
-      <div style={{ fontSize: 14, lineHeight: 1.65, color: "var(--ink-2)", whiteSpace: "pre-wrap" }}>
-        {app.notes
-          ? <p style={{ margin: 0 }}>{app.notes}</p>
-          : <p style={{ margin: 0, fontStyle: "italic", color: "var(--muted)" }}>No notes yet.</p>
-        }
-      </div>
+
+      {isLoading ? (
+        <p style={{ fontSize: 13, color: "var(--muted)", fontStyle: "italic", margin: 0 }}>Loading…</p>
+      ) : notes.length === 0 ? (
+        <p style={{ fontSize: 14, color: "var(--muted)", fontStyle: "italic", margin: 0 }}>No notes yet.</p>
+      ) : (
+        <div style={{ display: "grid", gap: 0 }}>
+          {notes.map((note, i) => (
+            <div
+              key={note.id}
+              style={{
+                padding: "12px 0",
+                borderBottom: i < notes.length - 1 ? "1px solid var(--line)" : "none",
+              }}
+            >
+              {editingId === note.id ? (
+                <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                  <textarea
+                    className="input-field textarea"
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    rows={3}
+                    autoFocus
+                    style={{ flex: 1 }}
+                  />
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    <button
+                      className="btn btn-dark btn-sm"
+                      disabled={!editText.trim() || updateMutation.isPending}
+                      onClick={() => handleUpdate(note.id)}
+                    >
+                      Save
+                    </button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setEditingId(null)}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "var(--ink-2)", whiteSpace: "pre-wrap" }}>
+                      {note.content}
+                    </p>
+                    <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--muted)", marginTop: 4, display: "block" }}>
+                      {fmtDate(note.dateCreated)}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
+                    <button
+                      className="iconbtn"
+                      onClick={() => { setEditingId(note.id); setEditText(note.content); }}
+                      title="Edit note"
+                    >
+                      <Pencil size={12} />
+                    </button>
+                    <button
+                      className="iconbtn iconbtn-danger"
+                      onClick={() => deleteMutation.mutate({ jobId, id: note.id })}
+                      title="Delete note"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="note-composer">
-        <div className="note-avatar">{(app.name ?? "?").charAt(0).toUpperCase()}</div>
+        <div className="note-avatar">{companyInitial}</div>
         <input
           className="note-input"
           placeholder="Add a note…"
@@ -136,12 +242,201 @@ function Notes({ app, onSave, pending }) {
         />
         <button
           className="btn btn-dark btn-sm"
-          disabled={!text.trim() || pending}
+          disabled={!text.trim() || createMutation.isPending}
           onClick={handleSave}
         >
-          {pending ? "Saving…" : "Save"}
+          {createMutation.isPending ? "Saving…" : "Save"}
         </button>
       </div>
+    </div>
+  );
+}
+
+const EMPTY_ACTIVITY_FORM = { name: "", date: "", importance: 0, description: "" };
+
+function Activities({ jobId }) {
+  const queryClient = useQueryClient();
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState(EMPTY_ACTIVITY_FORM);
+  const [confirmCompleteId, setConfirmCompleteId] = useState(null);
+
+  const { data: activities = [], isLoading } = useQuery({
+    queryKey: ["activities", jobId],
+    queryFn: () => getActivitiesByJob(jobId),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: createActivity,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["activities", jobId] });
+      setForm(EMPTY_ACTIVITY_FORM);
+      setShowAdd(false);
+    },
+    onError: (err) => toastError(err.message),
+  });
+
+  const toggleMutation = useMutation({
+    mutationFn: toggleActivityComplete,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["activities", jobId] }),
+    onError: (err) => toastError(err.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteActivity,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["activities", jobId] }),
+    onError: (err) => toastError(err.message),
+  });
+
+  const handleAdd = () => {
+    if (!form.name.trim() || !form.date) return;
+    createMutation.mutate({ jobId, dto: form });
+  };
+
+  return (
+    <div className="card">
+      <div className="card-head">
+        <h3><span className="lbl">D</span> Activities</h3>
+        <button
+          className="btn btn-ghost btn-sm"
+          style={{ gap: 5 }}
+          onClick={() => setShowAdd((v) => !v)}
+        >
+          <Plus size={13} /> Add
+        </button>
+      </div>
+
+      {showAdd && (
+        <div style={{
+          padding: 14,
+          background: "color-mix(in oklch, var(--ink) 3%, transparent)",
+          borderRadius: "var(--r-md)",
+          marginBottom: 12,
+          display: "grid",
+          gap: 10,
+        }}>
+          <div className="form-row">
+            <div className="form-field">
+              <label className="form-label">Name</label>
+              <input
+                className="input-field"
+                placeholder="e.g. Prep interview"
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              />
+            </div>
+            <div className="form-field">
+              <label className="form-label">Date</label>
+              <input
+                className="input-field"
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+              />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-field">
+              <label className="form-label">Importance</label>
+              <select
+                className="input-field select"
+                value={form.importance}
+                onChange={(e) => setForm((f) => ({ ...f, importance: Number(e.target.value) }))}
+              >
+                <option value={0}>Low</option>
+                <option value={1}>Medium</option>
+                <option value={2}>High</option>
+                <option value={3}>Urgent</option>
+              </select>
+            </div>
+            <div className="form-field">
+              <label className="form-label">Description</label>
+              <input
+                className="input-field"
+                placeholder="Optional"
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              />
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+            <button className="btn btn-ghost btn-sm" onClick={() => setShowAdd(false)}>Cancel</button>
+            <button
+              className="btn btn-dark btn-sm"
+              disabled={!form.name.trim() || !form.date || createMutation.isPending}
+              onClick={handleAdd}
+            >
+              {createMutation.isPending ? "Adding…" : "Add activity"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isLoading ? (
+        <p style={{ fontSize: 13, color: "var(--muted)", fontStyle: "italic", margin: 0 }}>Loading…</p>
+      ) : activities.length === 0 && !showAdd ? (
+        <p style={{ fontSize: 14, color: "var(--muted)", fontStyle: "italic", margin: 0 }}>
+          No activities yet.
+        </p>
+      ) : (
+        <div>
+          {activities.map((act) => {
+            const imp = IMPORTANCE_META[act.importance] ?? IMPORTANCE_META[0];
+            const isPendingComplete = confirmCompleteId === act.id;
+            return (
+              <div
+                key={act.id}
+                className={`todo-row${act.completed || isPendingComplete ? " is-done" : ""}`}
+              >
+                {isPendingComplete ? (
+                  <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
+                    <button
+                      className="del-yes"
+                      onClick={() => { deleteMutation.mutate(act.id); setConfirmCompleteId(null); }}
+                      disabled={deleteMutation.isPending}
+                    >
+                      Mark done
+                    </button>
+                    <button className="iconbtn" onClick={() => setConfirmCompleteId(null)}>✕</button>
+                  </div>
+                ) : (
+                  <button
+                    className={`todo-check${act.completed ? " is-done" : ""}`}
+                    style={{ flexShrink: 0 }}
+                    onClick={() => act.completed
+                      ? toggleMutation.mutate(act.id)
+                      : setConfirmCompleteId(act.id)
+                    }
+                    title={act.completed ? "Mark incomplete" : "Mark as done"}
+                  >
+                    {act.completed && <Check size={11} strokeWidth={2.5} />}
+                  </button>
+                )}
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 500 }}>{act.name}</div>
+                  {act.description && (
+                    <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>{act.description}</div>
+                  )}
+                </div>
+                <div className="todo-meta">
+                  <span
+                    style={{ width: 7, height: 7, borderRadius: "50%", background: imp.color, flexShrink: 0 }}
+                    title={imp.label}
+                  />
+                  <span>{fmtDate(act.date, { month: "short", day: "numeric" })}</span>
+                  <button
+                    className="iconbtn iconbtn-danger"
+                    style={{ width: 22, height: 22 }}
+                    onClick={() => deleteMutation.mutate(act.id)}
+                    title="Delete activity"
+                  >
+                    <Trash2 size={11} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -203,7 +498,6 @@ function DetailSide({ app }) {
   );
 }
 
-// ─── Move-stage dropdown ──────────────────────────────────────────────────────
 function MoveStageDropdown({ currentStage, onMove, pending }) {
   const [open, setOpen] = useState(false);
 
@@ -220,12 +514,10 @@ function MoveStageDropdown({ currentStage, onMove, pending }) {
 
       {open && (
         <>
-          {/* backdrop */}
           <div
             style={{ position: "fixed", inset: 0, zIndex: 9 }}
             onClick={() => setOpen(false)}
           />
-          {/* menu */}
           <div style={{
             position: "absolute",
             top: "calc(100% + 6px)",
@@ -312,10 +604,6 @@ export default function ApplicationDetailPage() {
     updateMutation.mutate({ id: app.id, form: buildForm(app, { status: newStatus }) });
   };
 
-  const saveNotes = (combined) => {
-    updateMutation.mutate({ id: app.id, form: buildForm(app, { description: combined }) });
-  };
-
   const handleEdit = (form) => {
     updateMutation.mutate({ id: app.id, form });
   };
@@ -334,7 +622,6 @@ export default function ApplicationDetailPage() {
 
         {app ? (
           <>
-            {/* Header */}
             <div className="detail-head">
               <div className="logo logo-lg" style={{ background: app.color }} aria-hidden="true">
                 {app.logo}
@@ -404,12 +691,12 @@ export default function ApplicationDetailPage() {
               </div>
             </div>
 
-            {/* Main grid */}
             <div className="detail-grid">
               <div className="detail-main">
                 <StageTracker stage={app.stage} />
                 <Timeline stage={app.stage} />
-                <Notes app={app} onSave={saveNotes} pending={updateMutation.isPending} />
+                <Notes jobId={app.id} companyInitial={app.logo} />
+                <Activities jobId={app.id} />
               </div>
               <div className="detail-side">
                 <DetailSide app={app} />

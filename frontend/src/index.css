@@ -687,12 +687,8 @@
     height: 28px;
     border-radius: 7px;
     background: var(--ink);
-    color: var(--accent);
     display: grid;
     place-items: center;
-    font-family: var(--mono);
-    font-weight: 600;
-    font-size: 14px;
     flex-shrink: 0;
   }
   .logo {
@@ -838,8 +834,7 @@
   /* Grid span helpers */
   .pipeline-card { grid-column: span 8; }
   .next-card     { grid-column: span 4; }
-  .activity-card { grid-column: span 7; }
-  .todo-card     { grid-column: span 5; }
+  .activity-card { grid-column: span 12; }
 }
 
 /* ================================================================
@@ -1301,6 +1296,7 @@
   .cal-event.interview { background: color-mix(in oklch, var(--st-interview) 14%, transparent); color: var(--st-interview); }
   .cal-event.deadline  { background: color-mix(in oklch, var(--st-rejected)  14%, transparent); color: var(--st-rejected); }
   .cal-event.offer     { background: color-mix(in oklch, var(--st-offer)     14%, transparent); color: var(--st-offer); }
+  .cal-event.activity  { background: color-mix(in oklch, var(--ink) 8%, transparent); color: var(--muted); border-left: 2px solid var(--muted); }
   .cal-event .time     { font-family: var(--mono); font-size: 10px; opacity: 0.85; }
   .cal-side {
     margin-top: 18px;
@@ -1996,62 +1992,15 @@
     background-size: 160px 160px;
   }
 
-  .mk-rule {
-    @apply h-px w-full bg-ink-rule;
-  }
-
-  .mk-eyebrow {
-    @apply inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-muted;
-  }
-
-  .mk-number {
-    @apply font-serif text-[13px] italic text-clay tracking-tight;
-  }
-
   .mk-link-underline {
     background-image: linear-gradient(currentColor, currentColor);
     background-size: 100% 1px;
     background-position: 0 100%;
     background-repeat: no-repeat;
-    transition: background-size 250ms cubic-bezier(0.6, 0, 0.2, 1);
   }
   .mk-link-underline:hover {
     background-size: 0 1px;
     background-position: 100% 100%;
-  }
-
-  .mk-btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-3.5
-           text-[13.5px] font-semibold tracking-tight text-paper transition-all duration-200
-           hover:bg-clay hover:text-paper hover:shadow-[0_18px_38px_-18px_rgba(194,65,12,0.65)]
-           active:scale-[0.98];
-  }
-
-  .mk-btn-outline {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink/15 bg-transparent
-           px-6 py-3.5 text-[13.5px] font-semibold tracking-tight text-ink transition-all duration-200
-           hover:border-ink hover:bg-ink hover:text-paper active:scale-[0.98];
-  }
-
-  .mk-btn-ghost-light {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-paper/20 bg-transparent
-           px-5 py-2.5 text-[13px] font-semibold tracking-tight text-paper/85 transition-all duration-200
-           hover:bg-paper/10 hover:text-paper;
-  }
-
-  .mk-input {
-    @apply w-full rounded-none border-0 border-b border-ink/20 bg-transparent px-0 py-3
-           font-sans text-[15px] text-ink placeholder:text-ink-muted/70
-           focus:border-clay focus:outline-none focus:ring-0
-           transition-colors duration-200;
-  }
-
-  .mk-card {
-    @apply relative rounded-[20px] border border-ink-rule bg-paper transition-all duration-300;
-  }
-
-  .mk-card:hover {
-    @apply border-ink/30;
   }
 }
 

@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Plus, ChevronDown, ArrowRight } from "lucide-react";
+import { Plus, ChevronDown, ArrowRight } from "lucide-react";
 import AppShell from "../components/layout/AppShell";
 import TopBar from "../components/layout/TopBar";
 import ApplicationModal from "../components/modals/ApplicationModal";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, useQueries } from "@tanstack/react-query";
 import { addApplication, getJobApplications } from "../api/JobApplications";
+import { getActivitiesByJob } from "../api/Activities";
 import { toastSuccess, toastError, toastInfo } from "../Utils/ToastUtils";
 import { STAGE_META, funnelCounts } from "../constants/statuses";
 import { useAuth } from "../../context/AuthContext";
@@ -25,6 +26,17 @@ function todayLabel() {
   return `— ${DAY_NAMES[d.getDay()]}, ${MONTH_NAMES[d.getMonth()]} ${d.getDate()} · ${d.getFullYear()}`;
 }
 
+function timeRemaining(dateStr) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const d = new Date(dateStr); d.setHours(0, 0, 0, 0);
+  const diff = Math.round((d - today) / 86400000);
+  if (diff < 0)   return `${Math.abs(diff)}d ago`;
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Tomorrow";
+  if (diff < 7)   return `In ${diff}d`;
+  return `In ${Math.floor(diff / 7)}w`;
+}
+
 const Sparkline = ({ data, color = "var(--ink)" }) => {
   if (!data || data.length < 2) return null;
   const max = Math.max(...data, 1);
@@ -35,38 +47,6 @@ const Sparkline = ({ data, color = "var(--ink)" }) => {
     </svg>
   );
 };
-
-const DEFAULT_TODOS = [
-  { text: "Follow up with pending applications",   meta: "Today",    done: false },
-  { text: "Update resume with latest projects",    meta: "This week", done: false },
-  { text: "Prep questions for upcoming interviews", meta: "Ongoing",  done: false },
-  { text: "Research target companies",             meta: "Ongoing",  done: true  },
-];
-
-function Todos() {
-  const [items, setItems] = useState(DEFAULT_TODOS);
-  const toggle = (i) => setItems(items.map((t, ix) => ix === i ? { ...t, done: !t.done } : t));
-  return (
-    <div>
-      {items.map((t, i) => (
-        <div key={i} className={`todo-row${t.done ? " is-done" : ""}`}>
-          <div
-            className={`todo-check${t.done ? " is-done" : ""}`}
-            onClick={() => toggle(i)}
-            role="checkbox"
-            aria-checked={t.done}
-            tabIndex={0}
-            onKeyDown={(e) => e.key === " " && toggle(i)}
-          >
-            {t.done && <Check size={10} strokeWidth={3} />}
-          </div>
-          <span>{t.text}</span>
-          <span className="todo-meta">{t.meta}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export default function DashboardPage() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -90,6 +70,27 @@ export default function DashboardPage() {
     onError: (err) => toastError(err.message),
     onMutate: () => toastInfo("Adding application..."),
   });
+
+  const activitiesQueries = useQueries({
+    queries: apps.map((app) => ({
+      queryKey: ["activities", app.id],
+      queryFn: () => getActivitiesByJob(app.id),
+      staleTime: 30_000,
+    })),
+  });
+
+  const upcomingActivities = activitiesQueries
+    .flatMap((q, i) =>
+      (q.data ?? []).map((act) => ({
+        ...act,
+        jobId: apps[i]?.id,
+        jobRole: apps[i]?.role,
+        jobName: apps[i]?.name,
+      }))
+    )
+    .filter((act) => !act.completed)
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 7);
 
   if (isLoading) return <p style={{ padding: 32, fontStyle: "italic", color: "var(--muted)" }}>Loading…</p>;
   if (error)     return <p style={{ padding: 32, color: "#9b4a3b" }}>{error.message}</p>;
@@ -212,44 +213,38 @@ export default function DashboardPage() {
                 View all <ArrowRight size={11} />
               </button>
             </div>
-            {counts.interview > 0 || counts.offer > 0 ? (
+            {upcomingActivities.length > 0 ? (
               <div className="upcoming">
-                {apps
-                  .filter((a) => ["interview", "offer"].includes(a.stage))
-                  .slice(0, 4)
-                  .map((a, i) => {
-                    const date = new Date(a.applied);
-                    return (
-                      <div
-                        className="upcoming-item"
-                        key={a.id}
-                        onClick={() => navigate(`/applications/${a.id}`)}
-                      >
-                        <div className="up-date">
-                          <span className="d">{date.getDate()}</span>
-                          <span className="m">{date.toLocaleString("en", { month: "short" })}</span>
-                        </div>
-                        <div className="up-body">
-                          <div className="title">{a.role} · {a.name}</div>
-                          <div className="sub">
-                            <span className={`pill ${a.stage}`} style={{ height: 18, fontSize: 10, padding: "0 7px" }}>
-                              <span className="pdot" />{(STAGE_META[a.stage] ?? STAGE_META.applied).label}
-                            </span>
-                          </div>
-                        </div>
+                {upcomingActivities.map((act) => {
+                  const date = new Date(act.date);
+                  return (
+                    <div
+                      className="upcoming-item"
+                      key={act.id}
+                      onClick={() => navigate(`/applications/${act.jobId}`)}
+                    >
+                      <div className="up-date">
+                        <span className="d">{date.getDate()}</span>
+                        <span className="m">{date.toLocaleString("en", { month: "short" })}</span>
                       </div>
-                    );
-                  })}
+                      <div className="up-body">
+                        <div className="title">{act.name}</div>
+                        <div className="sub">{act.jobRole} · {act.jobName}</div>
+                      </div>
+                      <div className="up-time">{timeRemaining(act.date)}</div>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div style={{ padding: "20px 0", textAlign: "center", color: "var(--muted)", fontSize: 13, fontStyle: "italic" }}>
-                No upcoming events
+                No upcoming activities
               </div>
             )}
           </div>
 
-          {/* Recent activity */}
-          <div className="card activity-card">
+          {/* Recent applications */}
+          <div className="card activity-card" style={{ gridColumn: "span 12" }}>
             <div className="card-head">
               <h3><span className="lbl">04</span> Recent applications</h3>
               <button className="chip" onClick={() => navigate("/applications")} style={{ gap: 5 }}>
@@ -278,15 +273,6 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Todos */}
-          <div className="card todo-card">
-            <div className="card-head">
-              <h3><span className="lbl">05</span> Today's follow-ups</h3>
-              <button className="iconbtn" aria-label="Add follow-up"><Plus size={14} /></button>
-            </div>
-            <Todos />
           </div>
         </div>
       </div>

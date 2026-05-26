@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, ChevronDown, Plus } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import { useQuery, useQueries, useMutation, useQueryClient } from "@tanstack/react-query";
 import AppShell from "../components/layout/AppShell";
 import TopBar from "../components/layout/TopBar";
 import ApplicationModal from "../components/modals/ApplicationModal";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addApplication, getJobApplications } from "../api/JobApplications";
+import { getActivitiesByJob } from "../api/Activities";
 import { toastError, toastInfo, toastSuccess } from "../Utils/ToastUtils";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -31,11 +31,16 @@ function buildCells(year, month) {
   return cells;
 }
 
-const STATIC_REMINDERS = [
-  { text: "Follow up with pending applications", when: "Today · 17:00", urgent: true },
-  { text: "Prep questions for interviews",        when: "Tomorrow · 09:00", urgent: false },
-  { text: "Update application tracker",           when: "Weekly · Mon 10:00", urgent: false },
-];
+function timeRemaining(dateStr) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const d = new Date(dateStr); d.setHours(0, 0, 0, 0);
+  const diff = Math.round((d - today) / 86400000);
+  if (diff < 0)   return `${Math.abs(diff)}d ago`;
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Tomorrow";
+  if (diff < 7)   return `In ${diff}d`;
+  return `In ${Math.floor(diff / 7)}w`;
+}
 
 export default function CalendarPage() {
   const today = new Date();
@@ -56,11 +61,28 @@ export default function CalendarPage() {
     onError: (err) => toastError(err.message),
   });
 
+  const activitiesQueries = useQueries({
+    queries: apps.map((app) => ({
+      queryKey: ["activities", app.id],
+      queryFn: () => getActivitiesByJob(app.id),
+      staleTime: 30_000,
+    })),
+  });
+
+  const allActivities = activitiesQueries.flatMap((q, i) =>
+    (q.data ?? []).map((act) => ({
+      ...act,
+      jobId: apps[i]?.id,
+      jobRole: apps[i]?.role,
+      jobName: apps[i]?.name,
+    }))
+  );
+
   const year  = viewMonth.getFullYear();
   const month = viewMonth.getMonth();
   const cells = buildCells(year, month);
 
-  // Build events from apps: use applied date as an event point
+  // Build events from apps (applied dates)
   const eventsByDay = {};
   apps.forEach((a) => {
     if (!a.applied) return;
@@ -75,11 +97,30 @@ export default function CalendarPage() {
     }
   });
 
-  // Upcoming: apps in interview or offer stage, sorted by applied date
+  // Add activity events on their scheduled date
+  allActivities.forEach((act) => {
+    if (!act.date || act.completed) return;
+    const d = new Date(act.date);
+    if (d.getFullYear() === year && d.getMonth() === month) {
+      const key = d.getDate();
+      (eventsByDay[key] = eventsByDay[key] || []).push({
+        title: act.name,
+        kind: "activity",
+        appId: act.jobId,
+      });
+    }
+  });
+
+  // Active pipeline sidebar
   const upcoming = [...apps]
     .filter((a) => ["interview", "offer"].includes(a.stage))
     .sort((a, b) => new Date(a.applied) - new Date(b.applied))
     .slice(0, 5);
+
+  // All upcoming non-completed activities sorted by date
+  const upcomingActivities = [...allActivities]
+    .filter((act) => !act.completed)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
 
   const prevMonth = () => setViewMonth(new Date(year, month - 1, 1));
   const nextMonth = () => setViewMonth(new Date(year, month + 1, 1));
@@ -149,9 +190,9 @@ export default function CalendarPage() {
           })}
         </div>
 
-        {/* Below grid: upcoming + reminders */}
+        {/* Below grid: active pipeline + upcoming activities */}
         <div className="cal-side">
-          {/* Upcoming this week */}
+          {/* Active pipeline */}
           <div className="card">
             <div className="card-head">
               <h3><span className="lbl">A</span> Active pipeline</h3>
@@ -195,38 +236,39 @@ export default function CalendarPage() {
             )}
           </div>
 
-          {/* Reminders */}
+          {/* Upcoming activities */}
           <div className="card">
             <div className="card-head">
-              <h3><span className="lbl">B</span> Reminders</h3>
-              <button className="iconbtn" aria-label="Add reminder"><Plus size={14} /></button>
+              <h3><span className="lbl">B</span> Upcoming activities</h3>
             </div>
-            <div style={{ display: "grid", gap: 8 }}>
-              {STATIC_REMINDERS.map((r, i) => (
-                <div
-                  key={i}
-                  style={{
-                    padding: 10,
-                    border: "1px solid var(--line)",
-                    borderRadius: 8,
-                    cursor: "pointer",
-                    transition: "background .15s",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{
-                      width: 8, height: 8, borderRadius: "50%",
-                      background: r.urgent ? "var(--st-rejected)" : "var(--st-applied)",
-                      flexShrink: 0,
-                    }} />
-                    <span style={{ fontSize: 13, fontWeight: 500 }}>{r.text}</span>
-                  </div>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--muted)", marginTop: 6, marginLeft: 16 }}>
-                    {r.when}
-                  </div>
-                </div>
-              ))}
-            </div>
+            {upcomingActivities.length > 0 ? (
+              <div className="upcoming">
+                {upcomingActivities.map((act) => {
+                  const date = new Date(act.date);
+                  return (
+                    <div
+                      className="upcoming-item"
+                      key={act.id}
+                      onClick={() => navigate(`/applications/${act.jobId}`)}
+                    >
+                      <div className="up-date">
+                        <span className="d">{date.getDate()}</span>
+                        <span className="m">{date.toLocaleString("en", { month: "short" })}</span>
+                      </div>
+                      <div className="up-body">
+                        <div className="title">{act.name}</div>
+                        <div className="sub">{act.jobRole} · {act.jobName}</div>
+                      </div>
+                      <div className="up-time">{timeRemaining(act.date)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ padding: "20px 0", textAlign: "center", color: "var(--muted)", fontSize: 13, fontStyle: "italic" }}>
+                No upcoming activities
+              </div>
+            )}
           </div>
         </div>
       </div>
