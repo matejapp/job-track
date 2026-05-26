@@ -8,14 +8,16 @@ namespace Api.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
+
         [BsonRepresentation(BsonType.ObjectId)]
-        public string UserId { get; set; } = String.Empty;
-        public string CompanyName { get; set; } = String.Empty;
-        public string Position { get; set; } = String.Empty;
-        public string ApplicationLink { get; set; } = String.Empty;
+        public string UserId { get; set; } = string.Empty;
+
+        public string CompanyName { get; set; } = string.Empty;
+        public string Position { get; set; } = string.Empty;
+        public string ApplicationLink { get; set; } = string.Empty;
+
         [BsonRepresentation(BsonType.String)]
         public ApplicationStatus Status { get; set; } = ApplicationStatus.Applied;
-        public string Description { get; set; } = String.Empty;
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
         public DateTime DateApplied { get; set; }
@@ -29,4 +31,3 @@ namespace Api.Models
         public DateTime DateCreated { get; set; }
     }
 }
-

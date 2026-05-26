@@ -9,6 +9,7 @@
 appsettings.*.json
 !appsettings.json
 !appsettings.Production.json.example
+.postman_collection.json
 
 # ─────────── Node / Vite ───────────
 **/node_modules/

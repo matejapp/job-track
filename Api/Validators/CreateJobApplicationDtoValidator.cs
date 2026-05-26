@@ -10,7 +10,6 @@ namespace Api.Validators
             RuleFor(x => x.CompanyName).NotEmpty().MinimumLength(2).WithMessage("Company name is required");
             RuleFor(x => x.Position).NotEmpty().MinimumLength(2).WithMessage("Position is required");
             RuleFor(x => x.ApplicationLink).Must(isValidUri).WithMessage("Application link is not valid");
-            RuleFor(x => x.Description).MaximumLength(1000).WithMessage("Description must be less than 1000 characters").MinimumLength(10).WithMessage("Description must be at least 10 characters");
             RuleFor(x => x.DateApplied).Must(isValidDate).WithMessage("Date applied is not valid");
         }
 
