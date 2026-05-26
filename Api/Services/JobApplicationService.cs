@@ -1,3 +1,4 @@
+
 using Api.Common;
 using Api.Dto;
 using Api.Models;
@@ -34,7 +35,6 @@ namespace Api.Services
                 Position = dto.Position,
                 ApplicationLink = dto.ApplicationLink,
                 Status = dto.Status,
-                Description = dto.Description,
                 DateApplied = dto.DateApplied.ToUniversalTime(),
                 DateCreated = DateTime.UtcNow,
                 DateUpdated = DateTime.UtcNow,
@@ -71,7 +71,6 @@ namespace Api.Services
             existing.Position = dto.Position;
             existing.ApplicationLink = dto.ApplicationLink;
             existing.Status = dto.Status;
-            existing.Description = dto.Description;
             existing.DateApplied = dto.DateApplied.ToUniversalTime();
             existing.DateUpdated = DateTime.UtcNow;
 
@@ -86,7 +85,6 @@ namespace Api.Services
             Position = entity.Position,
             ApplicationLink = entity.ApplicationLink,
             Status = entity.Status,
-            Description = entity.Description,
             DateApplied = entity.DateApplied,
             DateUpdated = entity.DateUpdated,
             DateCreated = entity.DateCreated
