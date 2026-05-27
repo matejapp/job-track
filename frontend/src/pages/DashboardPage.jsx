@@ -11,14 +11,36 @@ import { toastSuccess, toastError, toastInfo } from "../Utils/ToastUtils";
 import { STAGE_META, funnelCounts } from "../constants/statuses";
 import { useAuth } from "../../context/AuthContext";
 
-const DAY_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 function greeting() {
   const h = new Date().getHours();
+  if (h >= 23 || h < 5) return "Working late";
   if (h < 12) return "Good morning";
   if (h < 17) return "Good afternoon";
-  return "Good evening";
+  if (h < 23) return "Good evening";
 }
 
 function todayLabel() {
@@ -27,23 +49,38 @@ function todayLabel() {
 }
 
 function timeRemaining(dateStr) {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const d = new Date(dateStr); d.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const d = new Date(dateStr);
+  d.setHours(0, 0, 0, 0);
   const diff = Math.round((d - today) / 86400000);
-  if (diff < 0)   return `${Math.abs(diff)}d ago`;
+  if (diff < 0) return `${Math.abs(diff)}d ago`;
   if (diff === 0) return "Today";
   if (diff === 1) return "Tomorrow";
-  if (diff < 7)   return `In ${diff}d`;
+  if (diff < 7) return `In ${diff}d`;
   return `In ${Math.floor(diff / 7)}w`;
 }
 
 const Sparkline = ({ data, color = "var(--ink)" }) => {
   if (!data || data.length < 2) return null;
   const max = Math.max(...data, 1);
-  const pts = data.map((v, i) => `${(i / (data.length - 1)) * 100},${36 - (v / max) * 32}`).join(" ");
+  const pts = data
+    .map((v, i) => `${(i / (data.length - 1)) * 100},${36 - (v / max) * 32}`)
+    .join(" ");
   return (
-    <svg viewBox="0 0 100 36" preserveAspectRatio="none" className="kpi-spark" aria-hidden="true">
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.6" strokeLinejoin="round" />
+    <svg
+      viewBox="0 0 100 36"
+      preserveAspectRatio="none"
+      className="kpi-spark"
+      aria-hidden="true"
+    >
+      <polyline
+        points={pts}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 };
@@ -54,7 +91,11 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const { data: apps = [], isLoading, error } = useQuery({
+  const {
+    data: apps = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["apps"],
     queryFn: getJobApplications,
     refetchOnWindowFocus: "always",
@@ -92,12 +133,18 @@ export default function DashboardPage() {
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .slice(0, 7);
 
-  if (isLoading) return <p style={{ padding: 32, fontStyle: "italic", color: "var(--muted)" }}>Loading…</p>;
-  if (error)     return <p style={{ padding: 32, color: "#9b4a3b" }}>{error.message}</p>;
+  if (isLoading)
+    return (
+      <p style={{ padding: 32, fontStyle: "italic", color: "var(--muted)" }}>
+        Loading…
+      </p>
+    );
+  if (error)
+    return <p style={{ padding: 32, color: "#9b4a3b" }}>{error.message}</p>;
 
-  const counts  = funnelCounts(apps);
-  const total   = apps.length;
-  const inProg  = counts.applied + counts.interview;
+  const counts = funnelCounts(apps);
+  const total = apps.length;
+  const inProg = counts.applied + counts.interview;
   const userName = user?.name ?? user?.email?.split("@")[0] ?? "there";
 
   const recentApps = [...apps]
@@ -106,25 +153,44 @@ export default function DashboardPage() {
 
   const sparkData = (() => {
     const week = Array.from({ length: 10 }, (_, i) => {
-      const d = new Date(); d.setDate(d.getDate() - (9 - i));
+      const d = new Date();
+      d.setDate(d.getDate() - (9 - i));
       const s = d.toISOString().slice(0, 10);
-      return apps.filter((a) => a.applied && a.applied.slice(0, 10) <= s).length;
+      return apps.filter((a) => a.applied && a.applied.slice(0, 10) <= s)
+        .length;
     });
     return week;
   })();
 
   return (
     <AppShell>
-      <TopBar crumbs={["Workspace", "Dashboard"]} onAdd={() => setModalOpen(true)} />
+      <TopBar
+        crumbs={["Workspace", "Dashboard"]}
+        onAdd={() => setModalOpen(true)}
+      />
 
       <div className="content page-enter">
         <div className="content-head">
           <div className="eyebrow">{todayLabel()}</div>
-          <h1>{greeting()}, {userName}.</h1>
+          <h1>
+            {greeting()}, {userName}.
+          </h1>
           <p>
-            You have <strong>{counts.interview} interview{counts.interview !== 1 ? "s" : ""}</strong> in progress
-            {" "}and <strong>{inProg} active application{inProg !== 1 ? "s" : ""}</strong>.
-            {counts.offer > 0 && <> <strong>{counts.offer} offer</strong> awaiting your reply.</>}
+            You have{" "}
+            <strong>
+              {counts.interview} interview{counts.interview !== 1 ? "s" : ""}
+            </strong>{" "}
+            in progress and{" "}
+            <strong>
+              {inProg} active application{inProg !== 1 ? "s" : ""}
+            </strong>
+            .
+            {counts.offer > 0 && (
+              <>
+                {" "}
+                <strong>{counts.offer} offer</strong> awaiting your reply.
+              </>
+            )}
           </p>
         </div>
 
@@ -146,7 +212,10 @@ export default function DashboardPage() {
               <span style={{ color: "var(--accent)" }}>● </span>
               {counts.interview} in interview
             </div>
-            <Sparkline data={sparkData.map((v, i) => Math.max(0, v - i))} color="var(--accent)" />
+            <Sparkline
+              data={sparkData.map((v, i) => Math.max(0, v - i))}
+              color="var(--accent)"
+            />
           </div>
 
           <div className="kpi" style={{ gridColumn: "span 3" }}>
@@ -155,7 +224,11 @@ export default function DashboardPage() {
             <div className="kpi-delta">
               {counts.interview > 0 ? "Active pipeline" : "None scheduled"}
             </div>
-            <Sparkline data={Array.from({ length: 10 }, (_, i) => i < 7 ? 0 : counts.interview)} />
+            <Sparkline
+              data={Array.from({ length: 10 }, (_, i) =>
+                i < 7 ? 0 : counts.interview,
+              )}
+            />
           </div>
 
           <div className="kpi accent" style={{ gridColumn: "span 3" }}>
@@ -164,15 +237,24 @@ export default function DashboardPage() {
             <div className="kpi-delta">
               {counts.offer > 0 ? "Waiting on your reply" : "Keep applying!"}
             </div>
-            <Sparkline data={Array.from({ length: 10 }, (_, i) => i < 9 ? 0 : counts.offer)} color="var(--accent-ink)" />
+            <Sparkline
+              data={Array.from({ length: 10 }, (_, i) =>
+                i < 9 ? 0 : counts.offer,
+              )}
+              color="var(--accent-ink)"
+            />
           </div>
 
           {/* Pipeline funnel */}
           <div className="card pipeline-card">
             <div className="card-head">
-              <h3><span className="lbl">02</span> Pipeline overview</h3>
+              <h3>
+                <span className="lbl">02</span> Pipeline overview
+              </h3>
               <div style={{ display: "flex", gap: 4 }}>
-                <button className="chip" style={{ gap: 4 }}>All time <ChevronDown size={11} /></button>
+                <button className="chip" style={{ gap: 4 }}>
+                  All time <ChevronDown size={11} />
+                </button>
               </div>
             </div>
             <div className="funnel">
@@ -183,7 +265,15 @@ export default function DashboardPage() {
                 return (
                   <div className="funnel-row" key={k}>
                     <div className="funnel-label">
-                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: m.color, flexShrink: 0 }} />
+                      <span
+                        style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: "50%",
+                          background: m.color,
+                          flexShrink: 0,
+                        }}
+                      />
                       {m.label}
                     </div>
                     <div className="funnel-bar">
@@ -195,7 +285,9 @@ export default function DashboardPage() {
                           color: "white",
                         }}
                       >
-                        {c > 0 && total > 0 && `${Math.round((c / total) * 100)}%`}
+                        {c > 0 &&
+                          total > 0 &&
+                          `${Math.round((c / total) * 100)}%`}
                       </div>
                     </div>
                     <div className="funnel-count">{c}</div>
@@ -208,8 +300,14 @@ export default function DashboardPage() {
           {/* Up next */}
           <div className="card next-card">
             <div className="card-head">
-              <h3><span className="lbl">03</span> Up next</h3>
-              <button className="chip" style={{ gap: 5 }} onClick={() => navigate("/calendar")}>
+              <h3>
+                <span className="lbl">03</span> Up next
+              </h3>
+              <button
+                className="chip"
+                style={{ gap: 5 }}
+                onClick={() => navigate("/calendar")}
+              >
                 View all <ArrowRight size={11} />
               </button>
             </div>
@@ -225,11 +323,15 @@ export default function DashboardPage() {
                     >
                       <div className="up-date">
                         <span className="d">{date.getDate()}</span>
-                        <span className="m">{date.toLocaleString("en", { month: "short" })}</span>
+                        <span className="m">
+                          {date.toLocaleString("en", { month: "short" })}
+                        </span>
                       </div>
                       <div className="up-body">
                         <div className="title">{act.name}</div>
-                        <div className="sub">{act.jobRole} · {act.jobName}</div>
+                        <div className="sub">
+                          {act.jobRole} · {act.jobName}
+                        </div>
                       </div>
                       <div className="up-time">{timeRemaining(act.date)}</div>
                     </div>
@@ -237,7 +339,15 @@ export default function DashboardPage() {
                 })}
               </div>
             ) : (
-              <div style={{ padding: "20px 0", textAlign: "center", color: "var(--muted)", fontSize: 13, fontStyle: "italic" }}>
+              <div
+                style={{
+                  padding: "20px 0",
+                  textAlign: "center",
+                  color: "var(--muted)",
+                  fontSize: 13,
+                  fontStyle: "italic",
+                }}
+              >
                 No upcoming activities
               </div>
             )}
@@ -246,29 +356,56 @@ export default function DashboardPage() {
           {/* Recent applications */}
           <div className="card activity-card" style={{ gridColumn: "span 12" }}>
             <div className="card-head">
-              <h3><span className="lbl">04</span> Recent applications</h3>
-              <button className="chip" onClick={() => navigate("/applications")} style={{ gap: 5 }}>
+              <h3>
+                <span className="lbl">04</span> Recent applications
+              </h3>
+              <button
+                className="chip"
+                onClick={() => navigate("/applications")}
+                style={{ gap: 5 }}
+              >
                 View all <ArrowRight size={11} />
               </button>
             </div>
             <div className="feed">
-              {recentApps.length > 0 ? recentApps.map((a) => (
-                <div
-                  className="feed-item"
-                  key={a.id}
-                  style={{ cursor: "pointer" }}
-                  onClick={() => navigate(`/applications/${a.id}`)}
-                >
-                  <span className="feed-dot" style={{ background: STAGE_META[a.stage]?.color ?? "var(--muted)" }} />
-                  <div className="feed-body">
-                    Applied to <strong>{a.name}</strong> — {a.role}
+              {recentApps.length > 0 ? (
+                recentApps.map((a) => (
+                  <div
+                    className="feed-item"
+                    key={a.id}
+                    style={{ cursor: "pointer" }}
+                    onClick={() => navigate(`/applications/${a.id}`)}
+                  >
+                    <span
+                      className="feed-dot"
+                      style={{
+                        background:
+                          STAGE_META[a.stage]?.color ?? "var(--muted)",
+                      }}
+                    />
+                    <div className="feed-body">
+                      Applied to <strong>{a.name}</strong> — {a.role}
+                    </div>
+                    <span className="feed-time">
+                      {a.applied
+                        ? new Date(a.applied).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : "—"}
+                    </span>
                   </div>
-                  <span className="feed-time">
-                    {a.applied ? new Date(a.applied).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}
-                  </span>
-                </div>
-              )) : (
-                <div style={{ padding: "20px 0", color: "var(--muted)", fontSize: 13, fontStyle: "italic", textAlign: "center" }}>
+                ))
+              ) : (
+                <div
+                  style={{
+                    padding: "20px 0",
+                    color: "var(--muted)",
+                    fontSize: 13,
+                    fontStyle: "italic",
+                    textAlign: "center",
+                  }}
+                >
                   No applications yet
                 </div>
               )}

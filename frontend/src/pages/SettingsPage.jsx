@@ -4,8 +4,8 @@ import AppShell from "../components/layout/AppShell";
 import TopBar from "../components/layout/TopBar";
 
 const ACCENTS = [
+  { label: "Tangerine", value: "#f97316", ink: "#ffffff" },
   { label: "Lime",      value: "#c8ff2e", ink: "#0c0c0d" },
-  { label: "Tangerine", value: "#FF7A45", ink: "#0c0c0d" },
   { label: "Azure",     value: "#3D7EFF", ink: "#ffffff" },
   { label: "Violet",    value: "#B084FF", ink: "#ffffff" },
   { label: "Sun",       value: "#FFD43D", ink: "#0c0c0d" },
@@ -47,7 +47,7 @@ export default function SettingsPage() {
   const mqRef = useRef(null);
 
   const [themeMode, setThemeMode] = useState(
-    () => localStorage.getItem("jt-theme") || "dark"
+    () => localStorage.getItem("jt-theme") || "light"
   );
   const [accent, setAccent] = useState(() => {
     try { return JSON.parse(localStorage.getItem("jt-accent")) || ACCENTS[0]; }
@@ -139,7 +139,7 @@ export default function SettingsPage() {
                 {ACCENTS.map((a) => (
                   <button
                     key={a.value}
-                    className={`accent-swatch${accent?.value === a.value ? " is-active" : ""}`}
+                    className={`accent-swatch${(accent?.value || accent?.hex) === a.value ? " is-active" : ""}`}
                     style={{ background: a.value }}
                     onClick={() => handleAccent(a)}
                     title={a.label}

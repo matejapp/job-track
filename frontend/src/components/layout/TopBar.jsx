@@ -2,6 +2,8 @@ import { Fragment } from 'react';
 import { Search, Plus } from 'lucide-react';
 
 export default function TopBar({ crumbs = [], onAdd, rightSlot }) {
+  const canAdd = typeof onAdd === 'function';
+
   return (
     <div className="topbar">
       <div className="topbar-crumb" aria-label="Breadcrumb">
@@ -24,10 +26,12 @@ export default function TopBar({ crumbs = [], onAdd, rightSlot }) {
 
       {rightSlot}
 
-      <button className="btn btn-dark btn-sm" onClick={onAdd} aria-label="Add application">
-        <Plus size={14} strokeWidth={2} />
-        Add application
-      </button>
+      {canAdd && (
+        <button className="btn btn-dark btn-sm" onClick={onAdd} aria-label="Add application">
+          <Plus size={14} strokeWidth={2} />
+          Add application
+        </button>
+      )}
     </div>
   );
 }

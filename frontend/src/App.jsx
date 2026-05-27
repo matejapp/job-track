@@ -18,6 +18,9 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: 'always' } },
 });
 
+const showDevtools =
+  import.meta.env.DEV && localStorage.getItem("jt-devtools") === "true";
+
 function ProtectedRoute({ children }) {
   const { token } = useAuth();
   return token ? children : <Navigate to="/login" />;
@@ -42,7 +45,7 @@ export default function App() {
 
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
-        <ReactQueryDevtools initialIsOpen={false} />
+        {showDevtools && <ReactQueryDevtools initialIsOpen={false} />}
       </QueryClientProvider>
       <ToastContainer
         position="top-center"

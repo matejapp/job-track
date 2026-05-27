@@ -3,20 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0c0d0a" />
+    <meta name="theme-color" content="#f7f9fb" />
     <meta name="color-scheme" content="dark light" />
     <!-- Theme init: runs sync before CSS to prevent flash -->
     <script>
       (function() {
-        var mode = localStorage.getItem('jt-theme') || 'dark';
+        var mode = localStorage.getItem('jt-theme') || 'light';
         var resolved = mode === 'system'
           ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
           : mode;
         var d = localStorage.getItem('jt-density') || 'default';
         var accent;
         try { accent = JSON.parse(localStorage.getItem('jt-accent')); } catch(e) {}
-        var a = (accent && accent.hex) || '#c8ff2e';
-        var ink = (accent && accent.ink) || '#0c0c0d';
+        var a = (accent && accent.hex) || '#f97316';
+        var ink = (accent && accent.ink) || '#ffffff';
         var el = document.documentElement;
         el.setAttribute('data-theme', resolved);
         el.setAttribute('data-density', d);

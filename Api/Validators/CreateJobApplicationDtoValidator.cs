@@ -16,7 +16,7 @@ namespace Api.Validators
             RuleFor(x => x.Source).NotEmpty().MinimumLength(2).WithMessage("Source is required");
             RuleFor(x => x.ResumeVersion).NotEmpty().MinimumLength(2).WithMessage("Resume version is required");
 
-        };
+        }
 
 
         private static bool isValidUri(string? url) => Uri.TryCreate(url, UriKind.Absolute, out var uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
