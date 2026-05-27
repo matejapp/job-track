@@ -1,35 +1,39 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { GridLoader } from "react-spinners";
-import { register } from "../api/Auth";
+import { register as registerUser } from "../api/Auth";
 import { toastError, toastInfo, toastSuccess } from "../Utils/ToastUtils";
 import AuthShell from "../components/marketing/AuthShell";
+import { registerSchema } from "../validation/authSchema";
+
+function FieldError({ message }) {
+  if (!message) return null;
+  return <p className="mt-1 text-xs text-red-500">{message}</p>;
+}
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
 
-  const updateField = (field) => (event) => {
-    setForm((current) => ({ ...current, [field]: event.target.value }));
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(registerSchema) });
 
   const registerMutation = useMutation({
-    mutationFn: register,
+    mutationFn: registerUser,
     onSuccess: () => {
       toastSuccess("Account created");
       navigate("/login");
     },
-    onError:   (err) => toastError(err.message),
-    onMutate:  () => toastInfo("Creating account..."),
+    onError: (err) => toastError(err.message),
+    onMutate: () => toastInfo("Creating account..."),
   });
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    registerMutation.mutate(form);
-  };
 
   return (
     <AuthShell
@@ -48,7 +52,7 @@ export default function RegisterPage() {
         </p>
       }
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit((data) => registerMutation.mutate(data))} className="space-y-6" noValidate>
         <div>
           <label
             htmlFor="name"
@@ -59,13 +63,12 @@ export default function RegisterPage() {
           <input
             id="name"
             type="text"
-            required
             autoComplete="name"
             className="mk-input"
             placeholder="Alex Morgan"
-            value={form.name}
-            onChange={updateField("name")}
+            {...register("name")}
           />
+          <FieldError message={errors.name?.message} />
         </div>
 
         <div>
@@ -78,13 +81,12 @@ export default function RegisterPage() {
           <input
             id="email"
             type="email"
-            required
             autoComplete="email"
             className="mk-input"
             placeholder="you@example.com"
-            value={form.email}
-            onChange={updateField("email")}
+            {...register("email")}
           />
+          <FieldError message={errors.email?.message} />
         </div>
 
         <div>
@@ -98,13 +100,10 @@ export default function RegisterPage() {
             <input
               id="password"
               type={showPassword ? "text" : "password"}
-              required
-              minLength={6}
               autoComplete="new-password"
               className="mk-input pr-11"
               placeholder="At least 6 characters"
-              value={form.password}
-              onChange={updateField("password")}
+              {...register("password")}
             />
             <button
               type="button"
@@ -115,6 +114,7 @@ export default function RegisterPage() {
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
+          <FieldError message={errors.password?.message} />
         </div>
 
         <p className="text-[12px] leading-relaxed text-ink-muted">

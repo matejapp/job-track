@@ -1,6 +1,7 @@
 using Api.Dto;
 using Api.Services.Interfaces;
 using Api.Shared;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -14,10 +15,12 @@ namespace Api.Controllers
     public class NoteController : ControllerBase
     {
         private readonly INoteService _service;
+        private readonly IValidator<CreateNoteDto> _validator;
 
-        public NoteController(INoteService service)
+        public NoteController(INoteService service, IValidator<CreateNoteDto> validator)
         {
             _service = service;
+            _validator = validator;
         }
 
         [HttpGet]
@@ -36,8 +39,9 @@ namespace Api.Controllers
             var userId = User.GetUserId();
             if (userId == null) return Unauthorized();
 
-            if (string.IsNullOrWhiteSpace(dto.Content))
-                return BadRequest(new { error = "Content is required." });
+            var validation = await _validator.ValidateAsync(dto);
+            if (!validation.IsValid)
+                return BadRequest(new { errors = validation.Errors.Select(e => new { field = e.PropertyName, message = e.ErrorMessage }) });
 
             var note = await _service.CreateAsync(userId, jobId, dto);
             return CreatedAtAction(nameof(GetAll), new { jobId }, new { note });
@@ -49,8 +53,9 @@ namespace Api.Controllers
             var userId = User.GetUserId();
             if (userId == null) return Unauthorized();
 
-            if (string.IsNullOrWhiteSpace(dto.Content))
-                return BadRequest(new { error = "Content is required." });
+            var validation = await _validator.ValidateAsync(dto);
+            if (!validation.IsValid)
+                return BadRequest(new { errors = validation.Errors.Select(e => new { field = e.PropertyName, message = e.ErrorMessage }) });
 
             var note = await _service.UpdateAsync(userId, id, dto);
             return Ok(new { note });

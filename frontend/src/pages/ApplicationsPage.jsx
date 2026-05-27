@@ -24,6 +24,7 @@ import {
   updateApplication,
 } from "../api/JobApplications";
 import { toastError, toastInfo, toastSuccess } from "../Utils/ToastUtils";
+import { toJobApplicationForm } from "../validation/jobApplicationSchema";
 
 const formatDate = (d) =>
   d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—";
@@ -228,14 +229,8 @@ export default function ApplicationsPage() {
     updateMutation.mutate({
       id: app.id,
       form: {
-        companyName:     app.companyName     ?? "",
-        position:        app.position        ?? "",
-        applicationLink: app.applicationLink ?? "",
+        ...toJobApplicationForm(app),
         status:          newStatus,
-        description:     app.description     ?? "",
-        dateApplied:     app.dateApplied
-                           ? app.dateApplied.slice(0, 10)
-                           : new Date().toISOString().slice(0, 10),
       },
     });
   };

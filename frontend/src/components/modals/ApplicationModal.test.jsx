@@ -43,6 +43,11 @@ describe("ApplicationModal", () => {
       screen.getByLabelText(/notes/i),
       "Applied through careers page.",
     );
+    await user.type(screen.getByLabelText(/location/i), "Remote");
+    await user.selectOptions(screen.getByLabelText(/work mode/i), "Remote");
+    await user.type(screen.getByLabelText(/salary/i), "$120k-$150k");
+    await user.type(screen.getByLabelText(/source/i), "Referral");
+    await user.type(screen.getByLabelText(/resume version/i), "frontend.pdf");
 
     await user.click(screen.getByRole("button", { name: /add application/i }));
 
@@ -54,6 +59,11 @@ describe("ApplicationModal", () => {
           applicationLink: "https://openai.com/careers",
           status: "Applied",
           description: "Applied through careers page.",
+          location: "Remote",
+          salary: "$120k-$150k",
+          source: "Referral",
+          resumeVersion: "frontend.pdf",
+          workMode: "Remote",
         }),
       ),
     );
@@ -72,6 +82,11 @@ describe("ApplicationModal", () => {
           status: "Interview",
           description: "Interview loop is scheduled.",
           dateApplied: "2026-05-19T00:00:00Z",
+          location: "Berlin",
+          salary: "EUR 90k",
+          source: "LinkedIn",
+          resumeVersion: "product.pdf",
+          workMode: "Hybrid",
         }}
       />,
     );
@@ -80,5 +95,10 @@ describe("ApplicationModal", () => {
     expect(screen.getByLabelText(/position/i)).toHaveValue("Product Engineer");
     expect(screen.getByLabelText(/status/i)).toHaveValue("Interview");
     expect(screen.getByLabelText(/date applied/i)).toHaveValue("2026-05-19");
+    expect(screen.getByLabelText(/location/i)).toHaveValue("Berlin");
+    expect(screen.getByLabelText(/salary/i)).toHaveValue("EUR 90k");
+    expect(screen.getByLabelText(/source/i)).toHaveValue("LinkedIn");
+    expect(screen.getByLabelText(/resume version/i)).toHaveValue("product.pdf");
+    expect(screen.getByLabelText(/work mode/i)).toHaveValue("Hybrid");
   });
 });

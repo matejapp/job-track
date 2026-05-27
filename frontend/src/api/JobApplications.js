@@ -22,10 +22,11 @@ export function normalizeApp(raw) {
     // logo / color defaults (overrideable by future API fields)
     logo:  (raw.companyName ?? raw.name ?? '?').charAt(0).toUpperCase(),
     color: raw.brandColor ?? '#1a1a1c',
-    location:   raw.location   ?? '',
-    salary:     raw.salary     ?? '',
-    source:     raw.source     ?? '',
-    resumeVersion: raw.resumeVersion ?? '',
+    location:   raw.location   ?? raw.Location   ?? '',
+    salary:     raw.salary     ?? raw.Salary     ?? '',
+    source:     raw.source     ?? raw.Source     ?? '',
+    resumeVersion: raw.resumeVersion ?? raw.ResumeVersion ?? '',
+    workMode: raw.workMode ?? raw.WorkMode ?? 'OnSite',
   };
 }
 
@@ -36,6 +37,11 @@ const toJobApplicationDto = ({
   status,
   description,
   dateApplied,
+  location,
+  salary,
+  source,
+  resumeVersion,
+  workMode,
 }) => ({
   CompanyName: companyName,
   Position: position,
@@ -43,6 +49,11 @@ const toJobApplicationDto = ({
   Status: status,
   Description: description,
   DateApplied: dateApplied,
+  Location: location ?? "",
+  Salary: salary ?? "",
+  Source: source ?? "",
+  ResumeVersion: resumeVersion ?? "",
+  WorkMode: workMode || "OnSite",
 });
 
 export const getJobApplications = async () => {

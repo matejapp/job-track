@@ -4,9 +4,9 @@ import { Plus, ChevronDown, ArrowRight } from "lucide-react";
 import AppShell from "../components/layout/AppShell";
 import TopBar from "../components/layout/TopBar";
 import ApplicationModal from "../components/modals/ApplicationModal";
-import { useMutation, useQuery, useQueryClient, useQueries } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addApplication, getJobApplications } from "../api/JobApplications";
-import { getActivitiesByJob } from "../api/Activities";
+import { getAllActivities } from "../api/Activities";
 import { toastSuccess, toastError, toastInfo } from "../Utils/ToastUtils";
 import { STAGE_META, funnelCounts } from "../constants/statuses";
 import { useAuth } from "../../context/AuthContext";
@@ -71,23 +71,23 @@ export default function DashboardPage() {
     onMutate: () => toastInfo("Adding application..."),
   });
 
-  const activitiesQueries = useQueries({
-    queries: apps.map((app) => ({
-      queryKey: ["activities", app.id],
-      queryFn: () => getActivitiesByJob(app.id),
-      staleTime: 30_000,
-    })),
+  const { data: activities = [] } = useQuery({
+    queryKey: ["activities"],
+    queryFn: getAllActivities,
+    staleTime: 30_000,
   });
 
-  const upcomingActivities = activitiesQueries
-    .flatMap((q, i) =>
-      (q.data ?? []).map((act) => ({
+  const appsById = new Map(apps.map((app) => [String(app.id), app]));
+  const upcomingActivities = activities
+    .map((act) => {
+      const app = appsById.get(String(act.jobId));
+      return {
         ...act,
-        jobId: apps[i]?.id,
-        jobRole: apps[i]?.role,
-        jobName: apps[i]?.name,
-      }))
-    )
+        jobId: act.jobId,
+        jobRole: app?.role,
+        jobName: app?.name,
+      };
+    })
     .filter((act) => !act.completed)
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .slice(0, 7);

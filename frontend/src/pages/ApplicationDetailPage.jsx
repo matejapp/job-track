@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -10,9 +12,17 @@ import TopBar from "../components/layout/TopBar";
 import ApplicationModal from "../components/modals/ApplicationModal";
 import { getJobApplications, updateApplication, deleteApplication } from "../api/JobApplications";
 import { getNotes, createNote, updateNote, deleteNote } from "../api/Notes";
-import { getActivitiesByJob, createActivity, toggleActivityComplete, deleteActivity } from "../api/Activities";
+import {
+  getActivitiesByJob,
+  createActivity,
+  updateActivity,
+  toggleActivityComplete,
+  deleteActivity,
+} from "../api/Activities";
 import { STAGE_META, STAGES } from "../constants/statuses";
 import { toastSuccess, toastError, toastInfo } from "../Utils/ToastUtils";
+import { activitySchema } from "../validation/activitySchema";
+import { toJobApplicationForm } from "../validation/jobApplicationSchema";
 
 const fmtDate = (d, opts = { month: "short", day: "numeric", year: "numeric" }) =>
   d && d !== "TBD" ? new Date(d).toLocaleDateString("en-US", opts) : "—";
@@ -33,14 +43,7 @@ const IMPORTANCE_META = {
 
 function buildForm(app, overrides = {}) {
   return {
-    companyName:     app.companyName     ?? "",
-    position:        app.position        ?? "",
-    applicationLink: app.applicationLink ?? "",
-    status:          app.status          ?? "Applied",
-    description:     app.description     ?? "",
-    dateApplied:     app.dateApplied
-                       ? app.dateApplied.slice(0, 10)
-                       : new Date().toISOString().slice(0, 10),
+    ...toJobApplicationForm(app),
     ...overrides,
   };
 }
@@ -254,11 +257,131 @@ function Notes({ jobId, companyInitial }) {
 
 const EMPTY_ACTIVITY_FORM = { name: "", date: "", importance: 0, description: "" };
 
+const IMPORTANCE_VALUE = {
+  low: 0,
+  medium: 1,
+  high: 2,
+  urgent: 3,
+};
+
+function importanceValue(value) {
+  if (typeof value === "number") return value;
+  return IMPORTANCE_VALUE[String(value ?? "").toLowerCase()] ?? 0;
+}
+
+function toActivityForm(activity) {
+  return {
+    name: activity?.name ?? "",
+    date: activity?.date ? String(activity.date).slice(0, 10) : "",
+    importance: importanceValue(activity?.importance),
+    description: activity?.description ?? "",
+  };
+}
+
+function ActivityForm({
+  errors,
+  onCancel,
+  onSubmit,
+  pending,
+  pendingLabel,
+  register,
+  submitLabel,
+}) {
+  return (
+    <form
+      onSubmit={onSubmit}
+      style={{
+        padding: 14,
+        background: "color-mix(in oklch, var(--ink) 3%, transparent)",
+        borderRadius: "var(--r-md)",
+        marginBottom: 12,
+        display: "grid",
+        gap: 10,
+      }}
+    >
+      <div className="form-row">
+        <div className="form-field">
+          <label className="form-label">Name</label>
+          <input
+            className="input-field"
+            placeholder="e.g. Prep interview"
+            {...register("name")}
+          />
+          {errors.name && <p className="form-error">{errors.name.message}</p>}
+        </div>
+        <div className="form-field">
+          <label className="form-label">Date</label>
+          <input
+            className="input-field"
+            type="date"
+            {...register("date")}
+          />
+          {errors.date && <p className="form-error">{errors.date.message}</p>}
+        </div>
+      </div>
+      <div className="form-row">
+        <div className="form-field">
+          <label className="form-label">Importance</label>
+          <select
+            className="input-field select"
+            {...register("importance", { valueAsNumber: true })}
+          >
+            <option value={0}>Low</option>
+            <option value={1}>Medium</option>
+            <option value={2}>High</option>
+            <option value={3}>Urgent</option>
+          </select>
+        </div>
+        <div className="form-field">
+          <label className="form-label">Description</label>
+          <input
+            className="input-field"
+            placeholder="Optional"
+            {...register("description")}
+          />
+          {errors.description && <p className="form-error">{errors.description.message}</p>}
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={onCancel}
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="btn btn-dark btn-sm"
+          disabled={pending}
+        >
+          {pending ? pendingLabel : submitLabel}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 function Activities({ jobId }) {
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState(EMPTY_ACTIVITY_FORM);
+  const [editingId, setEditingId] = useState(null);
   const [confirmCompleteId, setConfirmCompleteId] = useState(null);
+
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+    defaultValues: EMPTY_ACTIVITY_FORM,
+    resolver: zodResolver(activitySchema),
+  });
+
+  const {
+    register: registerEdit,
+    handleSubmit: handleEditSubmit,
+    reset: resetEdit,
+    formState: { errors: editErrors },
+  } = useForm({
+    defaultValues: EMPTY_ACTIVITY_FORM,
+    resolver: zodResolver(activitySchema),
+  });
 
   const { data: activities = [], isLoading } = useQuery({
     queryKey: ["activities", jobId],
@@ -268,28 +391,51 @@ function Activities({ jobId }) {
   const createMutation = useMutation({
     mutationFn: createActivity,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["activities", jobId] });
-      setForm(EMPTY_ACTIVITY_FORM);
+      queryClient.invalidateQueries({ queryKey: ["activities"] });
+      reset(EMPTY_ACTIVITY_FORM);
       setShowAdd(false);
+    },
+    onError: (err) => toastError(err.message),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: updateActivity,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["activities"] });
+      resetEdit(EMPTY_ACTIVITY_FORM);
+      setEditingId(null);
     },
     onError: (err) => toastError(err.message),
   });
 
   const toggleMutation = useMutation({
     mutationFn: toggleActivityComplete,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["activities", jobId] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["activities"] }),
     onError: (err) => toastError(err.message),
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteActivity,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["activities", jobId] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["activities"] }),
     onError: (err) => toastError(err.message),
   });
 
-  const handleAdd = () => {
-    if (!form.name.trim() || !form.date) return;
-    createMutation.mutate({ jobId, dto: form });
+  const openAddForm = () => {
+    setEditingId(null);
+    setConfirmCompleteId(null);
+    setShowAdd((v) => !v);
+  };
+
+  const startEdit = (activity) => {
+    setShowAdd(false);
+    setConfirmCompleteId(null);
+    setEditingId(activity.id);
+    resetEdit(toActivityForm(activity));
+  };
+
+  const cancelEdit = () => {
+    resetEdit(EMPTY_ACTIVITY_FORM);
+    setEditingId(null);
   };
 
   return (
@@ -299,39 +445,42 @@ function Activities({ jobId }) {
         <button
           className="btn btn-ghost btn-sm"
           style={{ gap: 5 }}
-          onClick={() => setShowAdd((v) => !v)}
+          onClick={openAddForm}
         >
           <Plus size={13} /> Add
         </button>
       </div>
 
       {showAdd && (
-        <div style={{
-          padding: 14,
-          background: "color-mix(in oklch, var(--ink) 3%, transparent)",
-          borderRadius: "var(--r-md)",
-          marginBottom: 12,
-          display: "grid",
-          gap: 10,
-        }}>
+        <form
+          onSubmit={handleSubmit((data) => createMutation.mutate({ jobId, dto: data }))}
+          style={{
+            padding: 14,
+            background: "color-mix(in oklch, var(--ink) 3%, transparent)",
+            borderRadius: "var(--r-md)",
+            marginBottom: 12,
+            display: "grid",
+            gap: 10,
+          }}
+        >
           <div className="form-row">
             <div className="form-field">
               <label className="form-label">Name</label>
               <input
                 className="input-field"
                 placeholder="e.g. Prep interview"
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                {...register("name")}
               />
+              {errors.name && <p className="form-error">{errors.name.message}</p>}
             </div>
             <div className="form-field">
               <label className="form-label">Date</label>
               <input
                 className="input-field"
                 type="date"
-                value={form.date}
-                onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+                {...register("date")}
               />
+              {errors.date && <p className="form-error">{errors.date.message}</p>}
             </div>
           </div>
           <div className="form-row">
@@ -339,8 +488,7 @@ function Activities({ jobId }) {
               <label className="form-label">Importance</label>
               <select
                 className="input-field select"
-                value={form.importance}
-                onChange={(e) => setForm((f) => ({ ...f, importance: Number(e.target.value) }))}
+                {...register("importance", { valueAsNumber: true })}
               >
                 <option value={0}>Low</option>
                 <option value={1}>Medium</option>
@@ -353,22 +501,28 @@ function Activities({ jobId }) {
               <input
                 className="input-field"
                 placeholder="Optional"
-                value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                {...register("description")}
               />
+              {errors.description && <p className="form-error">{errors.description.message}</p>}
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => setShowAdd(false)}>Cancel</button>
             <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => { setShowAdd(false); reset(EMPTY_ACTIVITY_FORM); }}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
               className="btn btn-dark btn-sm"
-              disabled={!form.name.trim() || !form.date || createMutation.isPending}
-              onClick={handleAdd}
+              disabled={createMutation.isPending}
             >
               {createMutation.isPending ? "Adding…" : "Add activity"}
             </button>
           </div>
-        </div>
+        </form>
       )}
 
       {isLoading ? (
@@ -380,7 +534,24 @@ function Activities({ jobId }) {
       ) : (
         <div>
           {activities.map((act) => {
-            const imp = IMPORTANCE_META[act.importance] ?? IMPORTANCE_META[0];
+            if (editingId === act.id) {
+              return (
+                <ActivityForm
+                  key={act.id}
+                  errors={editErrors}
+                  onSubmit={handleEditSubmit((data) =>
+                    updateMutation.mutate({ id: act.id, dto: data })
+                  )}
+                  onCancel={cancelEdit}
+                  pending={updateMutation.isPending}
+                  pendingLabel="Saving..."
+                  register={registerEdit}
+                  submitLabel="Save activity"
+                />
+              );
+            }
+
+            const imp = IMPORTANCE_META[importanceValue(act.importance)] ?? IMPORTANCE_META[0];
             const isPendingComplete = confirmCompleteId === act.id;
             return (
               <div
@@ -391,8 +562,8 @@ function Activities({ jobId }) {
                   <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
                     <button
                       className="del-yes"
-                      onClick={() => { deleteMutation.mutate(act.id); setConfirmCompleteId(null); }}
-                      disabled={deleteMutation.isPending}
+                      onClick={() => { toggleMutation.mutate(act.id); setConfirmCompleteId(null); }}
+                      disabled={toggleMutation.isPending}
                     >
                       Mark done
                     </button>
@@ -423,6 +594,14 @@ function Activities({ jobId }) {
                     title={imp.label}
                   />
                   <span>{fmtDate(act.date, { month: "short", day: "numeric" })}</span>
+                  <button
+                    className="iconbtn"
+                    style={{ width: 22, height: 22 }}
+                    onClick={() => startEdit(act)}
+                    title="Edit activity"
+                  >
+                    <Pencil size={11} />
+                  </button>
                   <button
                     className="iconbtn iconbtn-danger"
                     style={{ width: 22, height: 22 }}
@@ -458,6 +637,12 @@ function DetailSide({ app }) {
             <div className="meta-row">
               <span className="k">Location</span>
               <span className="v">{app.location}</span>
+            </div>
+          )}
+          {app.workMode && (
+            <div className="meta-row">
+              <span className="k">Work mode</span>
+              <span className="v">{app.workMode === "OnSite" ? "On-site" : app.workMode}</span>
             </div>
           )}
           {app.source && (

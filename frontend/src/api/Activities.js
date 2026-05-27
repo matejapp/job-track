@@ -1,8 +1,18 @@
 import { apiRequest } from "./httpClient";
 
+export const getAllActivities = async () => {
+  const data = await apiRequest("/activity");
+  return data.activities ?? [];
+};
+
 export const getActivitiesByJob = async (jobId) => {
   const data = await apiRequest(`/activity/job/${jobId}`);
   return data.activities ?? [];
+};
+
+export const getActivityById = async (id) => {
+  const data = await apiRequest(`/activity/${id}`);
+  return data.activity;
 };
 
 export const createActivity = async ({ jobId, dto }) => {

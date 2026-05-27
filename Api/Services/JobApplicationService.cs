@@ -35,6 +35,11 @@ namespace Api.Services
                 Position = dto.Position,
                 ApplicationLink = dto.ApplicationLink,
                 Status = dto.Status,
+                Location = dto.Location,
+                Salary = dto.Salary,
+                Source = dto.Source,
+                ResumeVersion = dto.ResumeVersion,
+                WorkMode = dto.WorkMode,
                 DateApplied = dto.DateApplied.ToUniversalTime(),
                 DateCreated = DateTime.UtcNow,
                 DateUpdated = DateTime.UtcNow,
@@ -71,6 +76,11 @@ namespace Api.Services
             existing.Position = dto.Position;
             existing.ApplicationLink = dto.ApplicationLink;
             existing.Status = dto.Status;
+            existing.Location = dto.Location;
+            existing.Salary = dto.Salary;
+            existing.Source = dto.Source;
+            existing.ResumeVersion = dto.ResumeVersion;
+            existing.WorkMode = dto.WorkMode;
             existing.DateApplied = dto.DateApplied.ToUniversalTime();
             existing.DateUpdated = DateTime.UtcNow;
 
@@ -85,6 +95,11 @@ namespace Api.Services
             Position = entity.Position,
             ApplicationLink = entity.ApplicationLink,
             Status = entity.Status,
+            Location = entity.Location,
+            Salary = entity.Salary,
+            Source = entity.Source,
+            ResumeVersion = entity.ResumeVersion,
+            WorkMode = entity.WorkMode,
             DateApplied = entity.DateApplied,
             DateUpdated = entity.DateUpdated,
             DateCreated = entity.DateCreated

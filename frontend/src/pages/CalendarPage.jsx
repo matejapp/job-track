@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
-import { useQuery, useQueries, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import AppShell from "../components/layout/AppShell";
 import TopBar from "../components/layout/TopBar";
 import ApplicationModal from "../components/modals/ApplicationModal";
 import { addApplication, getJobApplications } from "../api/JobApplications";
-import { getActivitiesByJob } from "../api/Activities";
+import { getAllActivities } from "../api/Activities";
 import { toastError, toastInfo, toastSuccess } from "../Utils/ToastUtils";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -61,22 +61,22 @@ export default function CalendarPage() {
     onError: (err) => toastError(err.message),
   });
 
-  const activitiesQueries = useQueries({
-    queries: apps.map((app) => ({
-      queryKey: ["activities", app.id],
-      queryFn: () => getActivitiesByJob(app.id),
-      staleTime: 30_000,
-    })),
+  const { data: activities = [] } = useQuery({
+    queryKey: ["activities"],
+    queryFn: getAllActivities,
+    staleTime: 30_000,
   });
 
-  const allActivities = activitiesQueries.flatMap((q, i) =>
-    (q.data ?? []).map((act) => ({
+  const appsById = new Map(apps.map((app) => [String(app.id), app]));
+  const allActivities = activities.map((act) => {
+    const app = appsById.get(String(act.jobId));
+    return {
       ...act,
-      jobId: apps[i]?.id,
-      jobRole: apps[i]?.role,
-      jobName: apps[i]?.name,
-    }))
-  );
+      jobId: act.jobId,
+      jobRole: app?.role,
+      jobName: app?.name,
+    };
+  });
 
   const year  = viewMonth.getFullYear();
   const month = viewMonth.getMonth();

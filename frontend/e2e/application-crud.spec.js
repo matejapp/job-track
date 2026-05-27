@@ -8,6 +8,11 @@ const createAppFromDto = (dto, overrides = {}) => ({
   applicationLink: dto.ApplicationLink,
   status: dto.Status,
   description: dto.Description,
+  location: dto.Location ?? "",
+  salary: dto.Salary ?? "",
+  source: dto.Source ?? "",
+  resumeVersion: dto.ResumeVersion ?? "",
+  workMode: dto.WorkMode ?? "OnSite",
   dateApplied: dto.DateApplied,
   dateCreated: overrides.dateCreated ?? "2026-05-20T10:00:00Z",
   dateUpdated: overrides.dateUpdated ?? "2026-05-20T10:00:00Z",
@@ -23,6 +28,30 @@ test("login, create, edit, navigate to recent application, and delete", async ({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({ token: "playwright-token" }),
+    });
+  });
+
+  await page.route("**/api/activity", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ activities: [] }),
+    });
+  });
+
+  await page.route("**/api/activity/job/*", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ activities: [] }),
+    });
+  });
+
+  await page.route("**/api/jobapplications/*/notes", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ notes: [] }),
     });
   });
 
@@ -106,20 +135,18 @@ test("login, create, edit, navigate to recent application, and delete", async ({
 
   await expect(page.getByText("Frontend Engineer")).toBeVisible();
 
-  await page.getByRole("link", { name: /frontend engineer/i }).click();
-  await expect(page).toHaveURL(/\/applications\?applicationId=app-1/);
-  await expect(page.locator("#application-app-1")).toContainText("OpenAI");
+  await page.getByText(/Applied to OpenAI/i).click();
+  await expect(page).toHaveURL(/\/applications\/app-1/);
+  await expect(page.getByRole("heading", { name: "Frontend Engineer" })).toBeVisible();
 
-  await page.locator("#application-app-1").hover();
-  await page.getByTitle("Edit").click();
+  await page.getByRole("button", { name: /^edit$/i }).click();
   await page.getByLabel(/position/i).fill("Senior Frontend Engineer");
   await page.getByRole("button", { name: /save changes/i }).click();
 
-  await expect(page.getByText("Senior Frontend Engineer")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Senior Frontend Engineer" })).toBeVisible();
 
-  await page.locator("#application-app-1").hover();
-  await page.getByTitle("Delete").click();
-  await page.getByRole("button", { name: "Yes" }).click();
+  await page.getByLabel("Delete application").click();
+  await page.getByRole("button", { name: "Confirm delete" }).click();
 
   await expect(page.getByText("No applications yet")).toBeVisible();
 });

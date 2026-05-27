@@ -1,19 +1,31 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { GridLoader } from "react-spinners";
 import { login } from "../api/Auth";
 import { useAuth } from "../../context/AuthContext";
 import { toastError, toastInfo, toastSuccess } from "../Utils/ToastUtils";
 import AuthShell from "../components/marketing/AuthShell";
+import { loginSchema } from "../validation/authSchema";
+
+function FieldError({ message }) {
+  if (!message) return null;
+  return <p className="mt-1 text-xs text-red-500">{message}</p>;
+}
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { saveToken, saveUser } = useAuth();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(loginSchema) });
 
   const loginMutation = useMutation({
     mutationFn: login,
@@ -23,14 +35,9 @@ export default function LoginPage() {
       saveUser(data.user);
       navigate("/dashboard");
     },
-    onError:  (err) => toastError(err.message),
+    onError: (err) => toastError(err.message),
     onMutate: () => toastInfo("Logging in..."),
   });
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    loginMutation.mutate({ email, password });
-  };
 
   return (
     <AuthShell
@@ -49,7 +56,7 @@ export default function LoginPage() {
         </p>
       }
     >
-      <form onSubmit={handleSubmit} className="space-y-7">
+      <form onSubmit={handleSubmit((data) => loginMutation.mutate(data))} className="space-y-7" noValidate>
         <div>
           <label
             htmlFor="email"
@@ -60,13 +67,12 @@ export default function LoginPage() {
           <input
             id="email"
             type="email"
-            required
             autoComplete="email"
             className="mk-input"
             placeholder="you@example.com"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            {...register("email")}
           />
+          <FieldError message={errors.email?.message} />
         </div>
 
         <div>
@@ -80,12 +86,10 @@ export default function LoginPage() {
             <input
               id="password"
               type={showPassword ? "text" : "password"}
-              required
               autoComplete="current-password"
               className="mk-input pr-11"
               placeholder="Your password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              {...register("password")}
             />
             <button
               type="button"
@@ -96,6 +100,7 @@ export default function LoginPage() {
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
+          <FieldError message={errors.password?.message} />
         </div>
 
         {loginMutation.isPending ? (

@@ -1,6 +1,7 @@
 using Api.Dto;
 using Api.Services.Interfaces;
 using Api.Shared;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -14,10 +15,12 @@ namespace Api.Controllers
     public class ActivityController : ControllerBase
     {
         private readonly IActivityService _service;
+        private readonly IValidator<CreateActivityDto> _validator;
 
-        public ActivityController(IActivityService service)
+        public ActivityController(IActivityService service, IValidator<CreateActivityDto> validator)
         {
             _service = service;
+            _validator = validator;
         }
 
         [HttpGet]
@@ -56,6 +59,10 @@ namespace Api.Controllers
             var userId = User.GetUserId();
             if (userId == null) return Unauthorized();
 
+            var validation = await _validator.ValidateAsync(dto);
+            if (!validation.IsValid)
+                return BadRequest(new { errors = validation.Errors.Select(e => new { field = e.PropertyName, message = e.ErrorMessage }) });
+
             var activity = await _service.CreateActivityAsync(userId, jobId, dto);
             return CreatedAtAction(nameof(GetById), new { id = activity.Id }, new { activity });
         }
@@ -65,6 +72,10 @@ namespace Api.Controllers
         {
             var userId = User.GetUserId();
             if (userId == null) return Unauthorized();
+
+            var validation = await _validator.ValidateAsync(dto);
+            if (!validation.IsValid)
+                return BadRequest(new { errors = validation.Errors.Select(e => new { field = e.PropertyName, message = e.ErrorMessage }) });
 
             var activity = await _service.UpdateActivityAsync(userId, id, dto);
             return Ok(new { activity });

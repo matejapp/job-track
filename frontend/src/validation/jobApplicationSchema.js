@@ -9,6 +9,8 @@ export const APPLICATION_STATUSES = [
   "Withdrawn",
 ];
 
+export const WORK_MODES = ["Remote", "OnSite", "Hybrid"];
+
 const isHttpUrl = (value) => {
   try {
     const url = new URL(value);
@@ -45,6 +47,25 @@ export const jobApplicationSchema = z.object({
     .string()
     .min(1, "Date applied is required")
     .refine(isTodayOrPast, "Date applied cannot be in the future"),
+  location: z
+    .string()
+    .trim()
+    .max(200, "Location must be less than 200 characters"),
+  salary: z
+    .string()
+    .trim()
+    .max(100, "Salary must be less than 100 characters"),
+  source: z
+    .string()
+    .trim()
+    .max(100, "Source must be less than 100 characters"),
+  resumeVersion: z
+    .string()
+    .trim()
+    .max(100, "Resume version must be less than 100 characters"),
+  workMode: z.enum(WORK_MODES, {
+    message: "Choose a valid work mode",
+  }),
 });
 
 export const emptyJobApplicationForm = () => ({
@@ -54,15 +75,35 @@ export const emptyJobApplicationForm = () => ({
   status: "Applied",
   description: "",
   dateApplied: new Date().toISOString().slice(0, 10),
+  location: "",
+  salary: "",
+  source: "",
+  resumeVersion: "",
+  workMode: "OnSite",
 });
+
+const toApplicationStatus = (value) =>
+  APPLICATION_STATUSES.find(
+    (status) => status.toLowerCase() === String(value ?? "").toLowerCase(),
+  ) ?? "Applied";
+
+const toWorkMode = (value) =>
+  WORK_MODES.find(
+    (mode) => mode.toLowerCase() === String(value ?? "").toLowerCase(),
+  ) ?? "OnSite";
 
 export const toJobApplicationForm = (app) => ({
   companyName: app?.companyName ?? "",
   position: app?.position ?? "",
   applicationLink: app?.applicationLink ?? "",
-  status: APPLICATION_STATUSES.includes(app?.status) ? app.status : "Applied",
+  status: toApplicationStatus(app?.status ?? app?.stage),
   description: app?.description ?? "",
   dateApplied: app?.dateApplied
     ? app.dateApplied.slice(0, 10)
     : new Date().toISOString().slice(0, 10),
+  location: app?.location ?? "",
+  salary: app?.salary ?? "",
+  source: app?.source ?? "",
+  resumeVersion: app?.resumeVersion ?? "",
+  workMode: toWorkMode(app?.workMode),
 });
