@@ -204,10 +204,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* decorative bottom mark */}
-        <div className="pointer-events-none absolute bottom-6 right-6 hidden text-[11px] font-medium uppercase tracking-[0.3em] text-ink-muted/60 lg:block">
-          Est. 2024 — &nbsp;Built for the search ahead
-        </div>
+        
       </section>
 
       {/* ──────────── TAG MARQUEE ──────────── */}
