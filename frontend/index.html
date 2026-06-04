@@ -8,20 +8,11 @@
     <!-- Theme init: runs sync before CSS to prevent flash -->
     <script>
       (function() {
-        var mode = localStorage.getItem('jt-theme') || 'light';
+        var mode = localStorage.getItem('jt-theme') || 'system';
         var resolved = mode === 'system'
           ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
           : mode;
-        var d = localStorage.getItem('jt-density') || 'default';
-        var accent;
-        try { accent = JSON.parse(localStorage.getItem('jt-accent')); } catch(e) {}
-        var a = (accent && accent.hex) || '#f97316';
-        var ink = (accent && accent.ink) || '#ffffff';
-        var el = document.documentElement;
-        el.setAttribute('data-theme', resolved);
-        el.setAttribute('data-density', d);
-        el.style.setProperty('--accent', a);
-        el.style.setProperty('--accent-ink', ink);
+        if (resolved === 'dark') document.documentElement.classList.add('dark');
       })();
     </script>
     <meta
@@ -135,6 +126,6 @@
       JobTrack is a focused workspace for managing job applications, interviews, links, notes, and
       follow-ups. Please enable JavaScript to use the app.
     </noscript>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
