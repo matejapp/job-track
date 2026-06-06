@@ -4,8 +4,11 @@ import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from '@/providers/ThemeProvider'
 import { AuthProvider } from '@/providers/AuthProvider'
-import App from './App'
+import App from './App.tsx'
 import './index.css'
+import { initAnalytics } from '@/lib/analytics'
+
+initAnalytics()
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: 'always' } },

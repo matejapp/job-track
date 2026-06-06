@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { AUTH_UNAUTHORIZED_EVENT } from '@/api/httpClient'
+import { identifyUser, resetUser } from '@/lib/analytics'
 import type { AuthContextValue, User } from '@/types'
 
 const AuthContext = createContext<AuthContextValue>({
@@ -22,6 +23,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => localStorage.getItem('token'),
   )
   const [user, setUser] = useState<User | null>(parseStoredUser)
+
+  useEffect(() => {
+    if (user?.id) identifyUser(user.id, { name: user.name, email: user.email })
+  }, [])
 
   useEffect(() => {
     const handle = () => {
@@ -47,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     localStorage.setItem('user', JSON.stringify(u))
     setUser(u)
+    if (u.id) identifyUser(u.id, { name: u.name, email: u.email })
   }
 
   const logout = () => {
@@ -54,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('user')
     setToken(null)
     setUser(null)
+    resetUser()
   }
 
   return (
