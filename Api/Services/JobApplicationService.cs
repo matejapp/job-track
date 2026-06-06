@@ -31,6 +31,7 @@ namespace Api.Services
             var entity = new JobApplication
             {
                 UserId = userId,
+                RecruiterId = dto.RecruiterId,
                 CompanyName = dto.CompanyName,
                 Position = dto.Position,
                 ApplicationLink = dto.ApplicationLink,
@@ -72,6 +73,7 @@ namespace Api.Services
             if (existing == null || existing.UserId != userId)
                 throw new BusinessException(ErrorCodes.NotFound, "Job application not found", StatusCodes.Status404NotFound);
 
+            existing.RecruiterId = dto.RecruiterId;
             existing.CompanyName = dto.CompanyName;
             existing.Position = dto.Position;
             existing.ApplicationLink = dto.ApplicationLink;
@@ -91,6 +93,7 @@ namespace Api.Services
         {
             Id = entity.Id ?? string.Empty,
             UserId = entity.UserId,
+            RecruiterId = entity.RecruiterId,
             CompanyName = entity.CompanyName,
             Position = entity.Position,
             ApplicationLink = entity.ApplicationLink,

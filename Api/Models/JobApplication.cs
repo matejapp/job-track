@@ -24,6 +24,9 @@ namespace Api.Models
         public WorkMode WorkMode { get; set; } = WorkMode.OnSite;
 
 
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? RecruiterId { get; set; }
+
         [BsonRepresentation(BsonType.String)]
         public ApplicationStatus Status { get; set; } = ApplicationStatus.Applied;
 

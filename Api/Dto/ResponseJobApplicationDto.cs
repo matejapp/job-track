@@ -6,6 +6,7 @@ namespace Api.Dto
     {
         public string Id { get; set; } = string.Empty;
         public string UserId { get; set; } = string.Empty;
+        public string? RecruiterId { get; set; }
         public string CompanyName { get; set; } = string.Empty;
         public string Position { get; set; } = string.Empty;
         public string ApplicationLink { get; set; } = string.Empty;
