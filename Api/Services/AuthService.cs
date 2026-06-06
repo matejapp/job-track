@@ -11,18 +11,23 @@ namespace Api.Services
     {
         private readonly IAuthRepository _repo;
         private readonly IJwtTokenService _jwt;
+        private readonly ILogger<AuthService> _logger;
 
-        public AuthService(IAuthRepository repo, IJwtTokenService jwt)
+        public AuthService(IAuthRepository repo, IJwtTokenService jwt, ILogger<AuthService> logger)
         {
             _repo = repo;
             _jwt = jwt;
+            _logger = logger;
         }
 
         public async Task<GetUserDto> RegisterUser(RegisterDto registerDto)
         {
             var existing = await _repo.GetUserByEmail(registerDto.Email);
             if (existing != null)
+            {
+                _logger.LogWarning("Registration attempt with already-used email {Email}", registerDto.Email);
                 throw new BusinessException(ErrorCodes.EmailAlreadyInUse, "Email already in use", StatusCodes.Status409Conflict);
+            }
 
             var user = new User
             {
@@ -33,10 +38,11 @@ namespace Api.Services
             };
 
             var created = await _repo.CreateUser(user);
+            _logger.LogInformation("User registered {UserId}", created!.Id);
 
             return new GetUserDto
             {
-                Id = created!.Id,
+                Id = created.Id,
                 Name = created.Name,
                 Email = created.Email
             };
@@ -46,12 +52,16 @@ namespace Api.Services
         {
             var user = await _repo.GetUserByEmail(loginDto.Email);
             if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHashed))
+            {
+                _logger.LogWarning("Failed login attempt for email {Email}", loginDto.Email);
                 throw new BusinessException(ErrorCodes.InvalidCredentials, "Invalid email or password", StatusCodes.Status401Unauthorized);
+            }
 
             var now = DateTime.UtcNow;
             user.LastLogin = now;
             await _repo.UpdateLastLoginAsync(user.Id!, now);
 
+            _logger.LogInformation("User logged in {UserId}", user.Id);
             return _jwt.GenerateJwtToken(user);
         }
 
@@ -68,6 +78,5 @@ namespace Api.Services
                 Email = user.Email
             };
         }
-
     }
 }
