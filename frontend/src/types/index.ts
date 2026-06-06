@@ -8,6 +8,16 @@ export type ApplicationStatus =
   | 'Ghosted'
   | 'Withdrawn'
 
+export type ApplicationColor =
+  | 'default'
+  | 'blue'
+  | 'amber'
+  | 'red'
+  | 'purple'
+  | 'rose'
+  | 'indigo'
+  | 'orange'
+
 export type WorkMode = 'Remote' | 'OnSite' | 'Hybrid'
 
 export type ActivityImportance = 'Low' | 'Medium' | 'High' | 'Urgent'
@@ -21,6 +31,7 @@ export interface Application {
   position: string
   applicationLink: string
   status: ApplicationStatus
+  color?: ApplicationColor
   location: string
   salary: string
   source: string
@@ -60,6 +71,14 @@ export interface User {
   email: string
 }
 
+export interface Recruiter {
+  id: string,
+  name: string,
+  email: string,
+  company: string,
+  linkedInProfile: string,
+}
+
 // ─── Request DTOs ─────────────────────────────────────────────────────────────
 
 export interface CreateApplicationDto {
@@ -67,6 +86,7 @@ export interface CreateApplicationDto {
   position: string
   applicationLink: string
   status: ApplicationStatus
+  color?: ApplicationColor
   location: string
   salary: string
   source: string
@@ -84,6 +104,13 @@ export interface CreateActivityDto {
 
 export interface CreateNoteDto {
   content: string
+}
+
+export interface CreateRecruiterDto {
+  name: string,
+  email: string,
+  company: string,
+  linkedInProfile: string,
 }
 
 export interface LoginDto {

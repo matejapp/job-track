@@ -1,47 +1,81 @@
-// BACKEND MISMATCH: No Recruiter entity exists in the backend yet.
-// These functions will throw an ApiError until the backend implements the recruiter model.
-// Tracked endpoints:
-//   GET    /api/recruiters         — list all recruiters for the user
-//   POST   /api/recruiters         — create a recruiter
-//   PUT    /api/recruiters/{id}    — update a recruiter
-//   DELETE /api/recruiters/{id}    — delete a recruiter
-
 import { apiRequest } from './httpClient';
-import type { Recruiter } from '../types';
+import type { Recruiter, CreateRecruiterDto } from '../types';
 
-type CreateRecruiterDto = Omit<Recruiter, 'id'>
+interface RawRecruiter {
+  id?: string
+  name?: string
+  email?: string
+  phone?: string
+  title?: string
+  company?: string
+  linkedInProfile?: string
+  notes?: string
+  lastContactedAt?: string | null
+  updatedAt?: string
+  createdAt?: string
+}
+
+function normalizeRecruiter(raw: RawRecruiter): Recruiter {
+  return {
+    id: raw.id ?? '',
+    name: raw.name ?? '',
+    email: raw.email ?? '',
+    phone: raw.phone ?? '',
+    title: raw.title ?? '',
+    company: raw.company ?? '',
+    linkedInProfile: raw.linkedInProfile ?? '',
+    notes: raw.notes ?? '',
+    lastContactedAt: raw.lastContactedAt ?? null,
+    updatedAt: raw.updatedAt ?? '',
+    createdAt: raw.createdAt ?? '',
+  }
+}
+
+const toBackendDto = (dto: CreateRecruiterDto) => ({
+  Name: dto.name,
+  Email: dto.email,
+  Phone: dto.phone,
+  Title: dto.title,
+  Company: dto.company,
+  LinkedInProfile: dto.linkedInProfile,
+  Notes: dto.notes,
+  LastContactedAt: dto.lastContactedAt ?? null,
+})
 
 interface GetRecruitersResponse {
-  recruiters?: Recruiter[]
+  recruiters?: RawRecruiter[]
 }
 
 interface GetRecruiterResponse {
-  recruiter?: Recruiter
+  recruiter?: RawRecruiter
 }
 
 export async function getRecruiters(): Promise<Recruiter[]> {
-  const data = await apiRequest<GetRecruitersResponse>('/api/recruiters');
-  return data.recruiters ?? [];
+  const data = await apiRequest<GetRecruitersResponse>('/api/recruiter');
+  return (data.recruiters ?? []).map(normalizeRecruiter);
+}
+
+export async function getRecruiter(id: string): Promise<Recruiter> {
+  const data = await apiRequest<GetRecruiterResponse>(`/api/recruiter/${id}`);
+  return normalizeRecruiter(data.recruiter ?? {});
 }
 
 export async function createRecruiter(dto: CreateRecruiterDto): Promise<Recruiter> {
-  const data = await apiRequest<GetRecruiterResponse>('/api/recruiters', {
+  const data = await apiRequest<GetRecruiterResponse>('/api/recruiter', {
     method: 'POST',
-    body: dto,
+    body: toBackendDto(dto),
   });
-  return data.recruiter!;
+  return normalizeRecruiter(data.recruiter ?? {});
 }
 
-export async function updateRecruiter(id: string, dto: Partial<CreateRecruiterDto>): Promise<Recruiter> {
-  const data = await apiRequest<GetRecruiterResponse>(`/api/recruiters/${id}`, {
+export async function updateRecruiter(id: string, dto: CreateRecruiterDto): Promise<Recruiter> {
+  const data = await apiRequest<GetRecruiterResponse>(`/api/recruiter/${id}`, {
     method: 'PUT',
-    body: dto,
+    body: toBackendDto(dto),
   });
-  return data.recruiter!;
+  return normalizeRecruiter(data.recruiter ?? {});
 }
 
 export async function deleteRecruiter(id: string): Promise<void> {
-  await apiRequest(`/api/recruiters/${id}`, {
-    method: 'DELETE',
-  });
+  await apiRequest(`/api/recruiter/${id}`, { method: 'DELETE' });
 }
