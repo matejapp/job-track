@@ -32,6 +32,9 @@ builder.Services.Configure<MongoDBSettings>(
 );
 builder.Services.AddSingleton<MongoDBContext>();
 
+//Cache registration
+builder.Services.AddMemoryCache();
+
 
 // Health checks
 builder.Services.AddHealthChecks()
@@ -50,6 +53,8 @@ builder.Services.AddScoped<IActivityService, ActivityService>();
 builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
 builder.Services.AddScoped<INoteRepository, NoteRepository>();
 builder.Services.AddScoped<INoteService, NoteService>();
+builder.Services.AddScoped<IRecruiterRepository, RecruiterRepository>();
+builder.Services.AddScoped<IRecruiterService, RecruiterService>();
 
 // Validation
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterDtoValidator>();
@@ -79,6 +84,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend/", policy =>
         policy.WithOrigins("http://localhost:5173",
+                            "http://localhost:4173",
                             "https://job-track.app",
                             "https://www.job-track.app")
               .AllowAnyHeader()
@@ -96,9 +102,9 @@ if (!builder.Environment.IsEnvironment("Testing"))
         {
             config.Window = TimeSpan.FromSeconds(10);
             config.SegmentsPerWindow = 2;
-            config.PermitLimit = 5;
+            config.PermitLimit = 20;
             config.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-            config.QueueLimit = 5;
+            config.QueueLimit = 10;
         });
 
         options.AddFixedWindowLimiter("FixedWindow", config =>

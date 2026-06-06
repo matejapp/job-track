@@ -11,7 +11,7 @@ namespace Api.Shared
         public IMongoCollection<JobApplication> JobApplications;
         public IMongoCollection<Activity> Activities;
         public IMongoCollection<Note> Notes;
-
+        public IMongoCollection<Recruiter> Recruiters;
         public MongoDBContext(IConfiguration configuration)
         {
             var client = new MongoClient(configuration["MongoDB:ConnectionString"]);
@@ -21,6 +21,7 @@ namespace Api.Shared
             JobApplications = _database.GetCollection<JobApplication>(configuration.GetValue<string>("MongoDB:JobApplicationsCollection"));
             Activities = _database.GetCollection<Activity>(configuration.GetValue<string>("MongoDB:ActivityCollection"));
             Notes = _database.GetCollection<Note>(configuration.GetValue<string>("MongoDB:NotesCollection"));
+            Recruiters = _database.GetCollection<Recruiter>(configuration.GetValue<string>("MongoDB:RecruitersCollection"));
         }
 
         public async Task MigrateAsync()
