@@ -5,6 +5,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Api.Controllers
 {
@@ -16,11 +17,14 @@ namespace Api.Controllers
     {
         private readonly IActivityService _service;
         private readonly IValidator<CreateActivityDto> _validator;
+        private readonly IMemoryCache _cache;
+        private readonly string _cacheKey = "activities";
 
-        public ActivityController(IActivityService service, IValidator<CreateActivityDto> validator)
+        public ActivityController(IActivityService service, IValidator<CreateActivityDto> validator, IMemoryCache cache)
         {
             _service = service;
             _validator = validator;
+            _cache = cache;
         }
 
         [HttpGet]
@@ -29,7 +33,12 @@ namespace Api.Controllers
             var userId = User.GetUserId();
             if (userId == null) return Unauthorized();
 
-            var activities = await _service.GetActivitiesAsync(userId);
+            var activities = await _cache.GetOrCreateAsync(_cacheKey + userId, async entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+                entry.SlidingExpiration = TimeSpan.FromMinutes(2);
+                return await _service.GetActivitiesAsync(userId);
+            });
             return Ok(new { activities });
         }
 
@@ -64,6 +73,7 @@ namespace Api.Controllers
                 return BadRequest(new { errors = validation.Errors.Select(e => new { field = e.PropertyName, message = e.ErrorMessage }) });
 
             var activity = await _service.CreateActivityAsync(userId, jobId, dto);
+            _cache.Remove(_cacheKey + userId); // Invalidate cache on create to ensure consistency
             return CreatedAtAction(nameof(GetById), new { id = activity.Id }, new { activity });
         }
 
@@ -78,6 +88,7 @@ namespace Api.Controllers
                 return BadRequest(new { errors = validation.Errors.Select(e => new { field = e.PropertyName, message = e.ErrorMessage }) });
 
             var activity = await _service.UpdateActivityAsync(userId, id, dto);
+            _cache.Remove(_cacheKey + userId); // Invalidate cache on update to ensure consistency
             return Ok(new { activity });
         }
 
@@ -88,6 +99,7 @@ namespace Api.Controllers
             if (userId == null) return Unauthorized();
 
             await _service.ToggleCompleteAsync(userId, id);
+            _cache.Remove(_cacheKey + userId); // Invalidate cache on update to ensure consistency
             return NoContent();
         }
 
@@ -98,6 +110,7 @@ namespace Api.Controllers
             if (userId == null) return Unauthorized();
 
             await _service.DeleteActivityAsync(userId, id);
+            _cache.Remove(_cacheKey + userId); // Invalidate cache on delete to ensure consistency
             return NoContent();
         }
     }

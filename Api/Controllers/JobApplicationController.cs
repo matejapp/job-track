@@ -5,6 +5,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Api.Controllers
 {
@@ -16,21 +17,31 @@ namespace Api.Controllers
     {
         private readonly IJobApplicationService _service;
         private readonly IValidator<CreateJobApplicationDto> _validator;
+        private readonly IMemoryCache _cache;
+        private readonly string _cacheKey = "jobApplications";
 
-        public JobApplicationController(IJobApplicationService service, IValidator<CreateJobApplicationDto> validator)
+        public JobApplicationController(IJobApplicationService service, IValidator<CreateJobApplicationDto> validator, IMemoryCache cache)
         {
             _service = service;
             _validator = validator;
+            _cache = cache;
         }
 
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
+
+
             var userId = User.GetUserId();
             if (userId == null) return Unauthorized();
 
-            var jobApplications = await _service.GetByUserIdAsync(userId);
+            var jobApplications = await _cache.GetOrCreateAsync(_cacheKey + userId, async entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+                entry.SlidingExpiration = TimeSpan.FromMinutes(2);
+                return await _service.GetByUserIdAsync(userId);
+            });
             return Ok(new { jobApplications });
         }
 
@@ -60,6 +71,7 @@ namespace Api.Controllers
             }
 
             var jobApplication = await _service.CreateAsync(userId, dto);
+            _cache.Remove(_cacheKey + userId); // Invalidate cache on create to ensure consistency
             return CreatedAtAction(
                 nameof(GetById),
                 new { id = jobApplication.Id },
@@ -82,6 +94,7 @@ namespace Api.Controllers
             }
 
             await _service.UpdateAsync(userId, id, dto);
+            _cache.Remove(_cacheKey + userId); // Invalidate cache on update to ensure consistency
             return NoContent();
         }
 
@@ -92,6 +105,7 @@ namespace Api.Controllers
             if (userId == null) return Unauthorized();
 
             await _service.DeleteAsync(userId, id);
+            _cache.Remove(_cacheKey + userId); // Invalidate cache on delete to ensure consistency
             return NoContent();
         }
     }
