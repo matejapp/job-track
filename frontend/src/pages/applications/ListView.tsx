@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
-import { MoreHorizontal, Eye, Trash2, Briefcase } from 'lucide-react'
+import { MoreHorizontal, Eye, Pencil, Trash2, Briefcase } from 'lucide-react'
 
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
@@ -12,12 +12,15 @@ import {
 } from '@/components/ui/dropdown-menu'
 import StatusBadge from '@/components/shared/StatusBadge'
 import EmptyState from '@/components/shared/EmptyState'
+import { getColorConfig } from '@/lib/status'
+import { cn } from '@/lib/utils'
 import type { Application } from '@/types'
 
 interface Props {
   applications: Application[]
   isLoading: boolean
   onDelete: (id: string) => void
+  onEdit: (app: Application) => void
 }
 
 function SkeletonRow() {
@@ -48,7 +51,7 @@ function safeDate(dateStr: string): string {
   catch { return '—' }
 }
 
-export default function ListView({ applications, isLoading, onDelete }: Props) {
+export default function ListView({ applications, isLoading, onDelete, onEdit }: Props) {
   const navigate = useNavigate()
 
   return (
@@ -88,7 +91,7 @@ export default function ListView({ applications, isLoading, onDelete }: Props) {
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-accent/15 flex items-center justify-center text-accent text-sm font-semibold shrink-0">
+                      <div className={cn('h-8 w-8 rounded-full flex items-center justify-center text-sm font-semibold shrink-0', getColorConfig(app.color).bg, getColorConfig(app.color).text)}>
                         {app.companyName.charAt(0).toUpperCase()}
                       </div>
                       <span className="font-medium text-text-primary">{app.companyName}</span>
@@ -117,6 +120,9 @@ export default function ListView({ applications, isLoading, onDelete }: Props) {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => navigate(`/applications/${app.id}`)}>
                           <Eye className="mr-2 h-4 w-4" /> View
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onEdit(app)}>
+                          <Pencil className="mr-2 h-4 w-4" /> Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-danger focus:text-danger"

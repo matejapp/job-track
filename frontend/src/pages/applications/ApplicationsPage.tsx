@@ -37,6 +37,7 @@ export default function ApplicationsPage() {
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState('dateApplied:desc')
   const [addOpen, setAddOpen] = useState(false)
+  const [editApplication, setEditApplication] = useState<Application | null>(null)
 
   const queryClient = useQueryClient()
 
@@ -170,12 +171,18 @@ export default function ApplicationsPage() {
           applications={filtered}
           isLoading={isLoading}
           onDelete={id => deleteMutation.mutate(id)}
+          onEdit={app => setEditApplication(app)}
         />
       ) : (
         <KanbanView applications={filtered} />
       )}
 
       <AddApplicationDialog open={addOpen} onOpenChange={setAddOpen} />
+      <AddApplicationDialog
+        open={!!editApplication}
+        onOpenChange={o => { if (!o) setEditApplication(null) }}
+        application={editApplication}
+      />
     </div>
   )
 }

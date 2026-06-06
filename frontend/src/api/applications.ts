@@ -33,6 +33,7 @@ interface RawApplication {
   WorkMode?: WorkMode
   workMode?: WorkMode
   brandColor?: string
+  recruiterId?: string
   dateUpdated?: string
   dateCreated?: string
 }
@@ -78,6 +79,7 @@ export function normalizeApp(raw: RawApplication): NormalizedApplication {
     source,
     resumeVersion,
     workMode,
+    recruiterId: raw.recruiterId,
     dateApplied,
     dateUpdated: raw.dateUpdated ?? '',
     dateCreated: raw.dateCreated ?? '',
@@ -95,6 +97,7 @@ export function normalizeApp(raw: RawApplication): NormalizedApplication {
 
 // Maps our camelCase CreateApplicationDto → backend PascalCase request body.
 interface BackendCreateJobApplicationDto {
+  RecruiterId?: string
   CompanyName: string
   Position: string
   ApplicationLink: string
@@ -109,6 +112,7 @@ interface BackendCreateJobApplicationDto {
 }
 
 const toJobApplicationDto = (dto: CreateApplicationDto): BackendCreateJobApplicationDto => ({
+  RecruiterId: dto.recruiterId ?? undefined,
   CompanyName: dto.companyName,
   Position: dto.position,
   ApplicationLink: dto.applicationLink,
