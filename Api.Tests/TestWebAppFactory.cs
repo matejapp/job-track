@@ -24,6 +24,10 @@ public class TestWebAppFactory : WebApplicationFactory<Program>
         builder.UseSetting("MongoDB:DatabaseName",              _databaseName);
         builder.UseSetting("MongoDB:UsersCollection",           "Users");
         builder.UseSetting("MongoDB:JobApplicationsCollection", "JobApplications");
+        builder.UseSetting("MongoDB:ActivityCollection",        "Activities");
+        builder.UseSetting("MongoDB:NotesCollection",           "Notes");
+        builder.UseSetting("MongoDB:RecruitersCollection",      "Recruiters");
+        builder.UseSetting("MongoDB:DoucumentsCollection",      "Documents");
         builder.UseSetting("JWT:SecretKey",                     "test-secret-key-that-is-at-least-32-chars-long-for-hmac-sha256");
         builder.UseSetting("SupaBase:Url",                      "http://localhost:54321");
         builder.UseSetting("SupaBase:Key",                      "test-placeholder-key");

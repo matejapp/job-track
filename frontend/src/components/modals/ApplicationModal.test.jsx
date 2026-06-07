@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import ApplicationModal from "./ApplicationModal";
+import ApplicationModal from "../modals/ApplicationModal";
 
 describe("ApplicationModal", () => {
   it("blocks submit and shows schema errors for invalid values", async () => {

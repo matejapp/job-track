@@ -146,8 +146,11 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-var supabase = app.Services.GetRequiredService<SupabaseClient>();
-await supabase.InitializeAsync();
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    var supabase = app.Services.GetRequiredService<SupabaseClient>();
+    await supabase.InitializeAsync();
+}
 
 using (var scope = app.Services.CreateScope())
 {
