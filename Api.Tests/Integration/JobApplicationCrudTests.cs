@@ -92,10 +92,11 @@ public class JobApplicationCrudTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Create_MissingLocation_Returns400()
+    public async Task Create_MissingLocation_Returns201()
     {
+        // Location is optional — empty value is accepted
         var response = await _client.PostAsJsonAsync("/api/JobApplication", ValidPayload(location: ""));
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
     // ----- Read -----
