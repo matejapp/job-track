@@ -41,7 +41,10 @@ public class AuthorizationTests : IAsyncLifetime
         Position = "Engineer",
         ApplicationLink = "https://acme.example.com/jobs/1",
         Status = "Applied",
-        Description = "Applied via referral.",
+        Location = "New York",
+        Salary = "$100k",
+        Source = "LinkedIn",
+        ResumeVersion = "v1.0",
         DateApplied = DateTime.UtcNow.AddDays(-1).ToString("o")
     };
 

@@ -35,14 +35,20 @@ public class JobApplicationCrudTests : IAsyncLifetime
         string? position = "Engineer",
         string? link = "https://acme.example.com/jobs/1",
         string? status = "Applied",
-        string? description = "Applied via referral from a friend.",
+        string? location = "New York",
+        string? salary = "$100k",
+        string? source = "LinkedIn",
+        string? resumeVersion = "v1.0",
         DateTime? dateApplied = null) => new
     {
         CompanyName = company,
         Position = position,
         ApplicationLink = link,
         Status = status,
-        Description = description,
+        Location = location,
+        Salary = salary,
+        Source = source,
+        ResumeVersion = resumeVersion,
         DateApplied = (dateApplied ?? DateTime.UtcNow.AddDays(-1)).ToString("o")
     };
 
@@ -86,10 +92,9 @@ public class JobApplicationCrudTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Create_DescriptionTooShort_Returns400()
+    public async Task Create_MissingLocation_Returns400()
     {
-        // Validator requires Description >= 10 chars
-        var response = await _client.PostAsJsonAsync("/api/JobApplication", ValidPayload(description: "short"));
+        var response = await _client.PostAsJsonAsync("/api/JobApplication", ValidPayload(location: ""));
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 

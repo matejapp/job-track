@@ -38,7 +38,10 @@ public class IndexBehaviorTests : IAsyncLifetime
         Position = "Engineer",
         ApplicationLink = "https://example.com/jobs/" + company.ToLowerInvariant(),
         Status = "Applied",
-        Description = "Applied via the company website.",
+        Location = "New York",
+        Salary = "$100k",
+        Source = "LinkedIn",
+        ResumeVersion = "v1.0",
         DateApplied = dateApplied.ToString("o")
     };
 
