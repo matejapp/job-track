@@ -12,9 +12,9 @@ namespace Api.Validators
             RuleFor(x => x.ApplicationLink).Must(isValidUri).WithMessage("Application link is not valid");
             RuleFor(x => x.DateApplied).Must(isValidDate).WithMessage("Date applied is not valid");
             RuleFor(x => x.Location).NotEmpty().MinimumLength(2).WithMessage("Location is required");
-            RuleFor(x => x.Salary).NotEmpty().MinimumLength(2).WithMessage("Salary is required");
-            RuleFor(x => x.Source).NotEmpty().MinimumLength(2).WithMessage("Source is required");
-            RuleFor(x => x.ResumeVersion).NotEmpty().MinimumLength(2).WithMessage("Resume version is required");
+            RuleFor(x => x.Salary).MinimumLength(2).WithMessage("Salary must be at least 2 characters long");
+            RuleFor(x => x.Source).MinimumLength(2).WithMessage("Source must be at least 2 characters long");
+            RuleFor(x => x.ResumeVersion).MinimumLength(2).WithMessage("Resume version must be at least 2 characters long");
 
         }
 
