@@ -15,6 +15,8 @@ import StatisticsPage from '@/pages/statistics/StatisticsPage'
 import RecruitersPage from '@/pages/recruiters/RecruitersPage'
 import DocumentsPage from '@/pages/documents/DocumentsPage'
 import SettingsPage from '@/pages/settings/SettingsPage'
+import TermsOfServicePage from '@/pages/legal/TermsOfServicePage'
+import PrivacyPolicyPage from '@/pages/legal/PrivacyPolicyPage'
 
 export default function App() {
   return (
@@ -37,6 +39,9 @@ export default function App() {
           <Route path="/documents" element={<DocumentsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
+
+        <Route path="/terms" element={<TermsOfServicePage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

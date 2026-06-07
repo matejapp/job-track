@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 const FOOTER_LINKS = [
   { heading: 'Product', links: [{ label: 'Features', href: '#features' }, { label: 'How it works', href: '#how-it-works' }, { label: 'FAQ', href: '#faq' }] },
   { heading: 'Account', links: [{ label: 'Sign up', href: '/signup' }, { label: 'Log in', href: '/login' }] },
-  { heading: 'Legal', links: [{ label: 'Privacy Policy', href: '#' }, { label: 'Terms of Service', href: '#' }] },
+  { heading: 'Legal', links: [{ label: 'Privacy Policy', href: '/privacy' }, { label: 'Terms of Service', href: '/terms' }] },
 ]
 
 export default function LandingFooter() {

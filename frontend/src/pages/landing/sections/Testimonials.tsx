@@ -1,20 +1,20 @@
-import { Star } from 'lucide-react'
+import { LayoutDashboard, CalendarDays, BarChart2 } from 'lucide-react'
 
-const TESTIMONIALS = [
+const HIGHLIGHTS = [
   {
-    quote: "I was tracking 40+ applications in a spreadsheet and losing my mind. JobTrack made it so much easier to see the full picture at once.",
-    author: 'Mia K.',
-    role: 'Product Manager',
+    icon: LayoutDashboard,
+    title: 'One place for every application',
+    body: 'Kanban and list views let you see all your applications, statuses, and next steps at a glance — no more spreadsheet chaos.',
   },
   {
-    quote: "The calendar view is my favorite feature. I can see all my upcoming interviews and follow-ups without digging through emails.",
-    author: 'James R.',
-    role: 'Software Engineer',
+    icon: CalendarDays,
+    title: 'Never miss a follow-up',
+    body: 'Log interviews and deadlines, then check the calendar view so nothing slips through the cracks.',
   },
   {
-    quote: "The stats page helped me realize I was applying to too many companies and not following up. Changed my whole approach.",
-    author: 'Priya N.',
-    role: 'UX Designer',
+    icon: BarChart2,
+    title: 'Understand what’s working',
+    body: 'The statistics page shows your response rates and pipeline stages so you can adjust your strategy, not just send more applications.',
   },
 ]
 
@@ -23,24 +23,19 @@ export default function TestimonialsSection() {
     <section className="bg-bg-subtle py-20">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-12">
-          <p className="text-xs font-semibold uppercase tracking-widest text-accent mb-3">Testimonials</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-accent mb-3">Why JobTrack</p>
           <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary">
-            What job seekers are saying
+            Built around how job searching actually works
           </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {TESTIMONIALS.map(t => (
-            <div key={t.author} className="p-6 rounded-xl border border-border bg-bg-surface space-y-4">
-              <div className="flex gap-0.5">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-4 w-4 text-warning fill-warning" />
-                ))}
+          {HIGHLIGHTS.map(h => (
+            <div key={h.title} className="p-6 rounded-xl border border-border bg-bg-surface space-y-4">
+              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                <h.icon className="h-5 w-5 text-accent" />
               </div>
-              <p className="text-text-secondary text-sm leading-relaxed">"{t.quote}"</p>
-              <div>
-                <p className="text-sm font-semibold text-text-primary">{t.author}</p>
-                <p className="text-xs text-text-muted">{t.role}</p>
-              </div>
+              <p className="text-base font-semibold text-text-primary">{h.title}</p>
+              <p className="text-text-secondary text-sm leading-relaxed">{h.body}</p>
             </div>
           ))}
         </div>

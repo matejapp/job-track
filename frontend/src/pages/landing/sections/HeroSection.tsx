@@ -2,9 +2,6 @@ import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Star } from 'lucide-react'
 
-const AVATAR_COLORS = ['bg-accent', 'bg-info', 'bg-warning', 'bg-danger', 'bg-accent/70']
-const AVATAR_LABELS = ['A', 'B', 'C', 'D', 'E']
-
 export default function HeroSection() {
   return (
     <section className="max-w-6xl mx-auto px-6 py-20 md:py-28">
@@ -30,23 +27,8 @@ export default function HeroSection() {
               <Link to="/login">Sign in</Link>
             </Button>
           </div>
-          {/* Social proof */}
-          <div className="flex items-center gap-3 pt-2">
-            <div className="flex -space-x-2">
-              {AVATAR_LABELS.map((l, i) => (
-                <div key={i} className={`w-8 h-8 rounded-full ${AVATAR_COLORS[i]} text-white text-xs font-semibold flex items-center justify-center ring-2 ring-bg-base`}>
-                  {l}
-                </div>
-              ))}
-            </div>
-            <div>
-              <div className="flex items-center gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-3 w-3 text-warning fill-warning" />
-                ))}
-              </div>
-              <p className="text-xs text-text-muted mt-0.5">Joined by 2,400+ job seekers</p>
-            </div>
+          <div className="flex items-center gap-2 pt-2">
+            <span className="text-sm text-text-muted">No credit card required &middot; Free for job seekers</span>
           </div>
         </div>
 

@@ -1,0 +1,233 @@
+<mxGraphModel adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="t1" value="JobTrack — Full System Architecture (every endpoint, service, repo)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=17;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="20" y="15" width="1640" height="35" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="fe_c" value="React Frontend (Vite + TypeScript)" style="swimlane;startSize=25;fillColor=#e8f4fd;strokeColor=#5b9bd5;fontStyle=1;fontSize=11;html=1;" vertex="1" parent="1">
+      <mxGeometry x="20" y="60" width="175" height="495" as="geometry"/>
+    </mxCell>
+    <mxCell id="fe_pages" value="Pages&#xa;ApplicationsPage + ListView/KanbanView&#xa;ApplicationDetailPage&#xa;RecruitersPage&#xa;DocumentsPage&#xa;DashboardPage&#xa;CalendarPage&#xa;StatisticsPage&#xa;LoginPage, SignupPage&#xa;LandingPage" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;align=left;" vertex="1" parent="fe_c">
+      <mxGeometry x="10" y="35" width="155" height="115" as="geometry"/>
+    </mxCell>
+    <mxCell id="fe_api" value="API Layer (src/api/)&#xa;httpClient.ts — base fetch, 401 event&#xa;auth.ts&#xa;applications.ts&#xa;activities.ts&#xa;notes.ts&#xa;recruiters.ts&#xa;documents.ts (NEW)&#xa;dashboard.ts, statistics.ts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;align=left;" vertex="1" parent="fe_c">
+      <mxGeometry x="10" y="160" width="155" height="110" as="geometry"/>
+    </mxCell>
+    <mxCell id="fe_prov" value="AuthProvider&#xa;JWT + user in localStorage&#xa;identifyUser on load/login&#xa;ThemeProvider" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontSize=9;align=left;" vertex="1" parent="fe_c">
+      <mxGeometry x="10" y="280" width="155" height="65" as="geometry"/>
+    </mxCell>
+    <mxCell id="fe_state" value="TanStack Query&#xa;cache + mutation hooks&#xa;Zod + React Hook Form&#xa;validation schemas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontSize=9;align=left;" vertex="1" parent="fe_c">
+      <mxGeometry x="10" y="355" width="155" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="fe_ph" value="PostHog Analytics&#xa;posthog-js, initAnalytics()&#xa;identifyUser, resetUser&#xa;track.* typed events" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontSize=9;align=left;" vertex="1" parent="fe_c">
+      <mxGeometry x="10" y="425" width="155" height="55" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="mw_c" value="Request Pipeline (Middleware)" style="swimlane;startSize=25;fillColor=#fff8e1;strokeColor=#f9a825;fontStyle=1;fontSize=11;html=1;" vertex="1" parent="1">
+      <mxGeometry x="205" y="60" width="1455" height="85" as="geometry"/>
+    </mxCell>
+    <mxCell id="mw_eh" value="ExceptionHandlingMiddleware&#xa;BusinessException → ProblemDetails&#xa;catches all unhandled errors" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;" vertex="1" parent="mw_c">
+      <mxGeometry x="10" y="30" width="185" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="mw_seri" value="Serilog&#xa;UseSerilogRequestLogging()&#xa;JSON structured (prod)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;" vertex="1" parent="mw_c">
+      <mxGeometry x="205" y="30" width="185" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="mw_cors" value="CORS Policy Frontend/&#xa;localhost:5173, localhost:4173&#xa;job-track.app, www.job-track.app" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;" vertex="1" parent="mw_c">
+      <mxGeometry x="400" y="30" width="195" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="mw_jwt" value="JWT Bearer Auth&#xa;HS256 symmetric key&#xa;[Authorize] on most controllers&#xa;ClockSkew = 0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;" vertex="1" parent="mw_c">
+      <mxGeometry x="605" y="30" width="190" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="mw_sw" value="RateLimiter: SlidingWindow&#xa;20 req / 10s, segments=2&#xa;queue=10 (most controllers)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;" vertex="1" parent="mw_c">
+      <mxGeometry x="805" y="30" width="200" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="mw_fw" value="RateLimiter: FixedWindow&#xa;5 req / 30s, queue=0&#xa;AuthController only" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;" vertex="1" parent="mw_c">
+      <mxGeometry x="1015" y="30" width="195" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="mw_health" value="Health Check&#xa;GET /health&#xa;MongoDB probe (3s timeout)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;" vertex="1" parent="mw_c">
+      <mxGeometry x="1220" y="30" width="220" height="45" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="auth_c" value="Auth Domain" style="swimlane;startSize=25;fillColor=#fef3e8;strokeColor=#d07000;fontStyle=1;fontSize=11;html=1;" vertex="1" parent="1">
+      <mxGeometry x="205" y="155" width="220" height="400" as="geometry"/>
+    </mxCell>
+    <mxCell id="auth_ctrl" value="AuthController&#xa;Route: api/auth | [FixedWindow]&#xa;&#xa;POST /api/auth/register&#xa;POST /api/auth/login" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;align=left;" vertex="1" parent="auth_c">
+      <mxGeometry x="10" y="35" width="200" height="85" as="geometry"/>
+    </mxCell>
+    <mxCell id="auth_svc" value="AuthService&#xa;RegisterUser(dto)&#xa; check duplicate email&#xa; BCrypt.HashPassword&#xa;LoginUser(dto)&#xa; BCrypt.Verify + UpdateLastLogin&#xa;GetUserName(email)&#xa;ILogger — structured auth events" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;align=left;" vertex="1" parent="auth_c">
+      <mxGeometry x="10" y="130" width="200" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="auth_jwt" value="JwtTokenService (Singleton)&#xa;GenerateJwtToken(user)&#xa;HS256, no iss/aud validation&#xa;ClockSkew = 0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;align=left;" vertex="1" parent="auth_c">
+      <mxGeometry x="10" y="240" width="200" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="auth_repo" value="AuthRepository&#xa;GetUserByEmail(email)&#xa;CreateUser(user)&#xa;UpdateLastLoginAsync(id, time)&#xa;MongoDB: Users collection" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=9;align=left;" vertex="1" parent="auth_c">
+      <mxGeometry x="10" y="305" width="200" height="80" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="app_c" value="Job Applications Domain" style="swimlane;startSize=25;fillColor=#e8f5e9;strokeColor=#2e7d32;fontStyle=1;fontSize=11;html=1;" vertex="1" parent="1">
+      <mxGeometry x="435" y="155" width="220" height="400" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_ctrl" value="JobApplicationController&#xa;Route: api/jobapplication&#xa;[SlidingWindow] [Authorize]&#xa;&#xa;GET / (cached 5min abs / 2min sliding)&#xa;GET /{id}&#xa;POST /&#xa;PUT /{id}&#xa;DELETE /{id}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;align=left;" vertex="1" parent="app_c">
+      <mxGeometry x="10" y="35" width="200" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_cache" value="IMemoryCache | key: jobApplications+userId&#xa;Abs 5min, Sliding 2min | invalidate on CUD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;" vertex="1" parent="app_c">
+      <mxGeometry x="10" y="145" width="200" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_svc" value="JobApplicationService&#xa;GetByUserIdAsync(userId)&#xa;GetByIdAsync(userId, id)&#xa;CreateAsync(userId, dto)&#xa;UpdateAsync(userId, id, dto)&#xa;DeleteAsync(userId, id)&#xa;+ ownership check (entity.UserId)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;align=left;" vertex="1" parent="app_c">
+      <mxGeometry x="10" y="195" width="200" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="app_repo" value="JobApplicationRepository&#xa;GetByUserIdAsync(userId)&#xa;GetByIdAsync(id)&#xa;AddAsync(entity)&#xa;UpdateAsync(entity)&#xa;DeleteAsync(id)&#xa;MongoDB: JobApplications" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=9;align=left;" vertex="1" parent="app_c">
+      <mxGeometry x="10" y="295" width="200" height="90" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="act_c" value="Activities Domain" style="swimlane;startSize=25;fillColor=#e3f2fd;strokeColor=#1565c0;fontStyle=1;fontSize=11;html=1;" vertex="1" parent="1">
+      <mxGeometry x="665" y="155" width="220" height="400" as="geometry"/>
+    </mxCell>
+    <mxCell id="act_ctrl" value="ActivityController&#xa;Route: api/activity&#xa;[SlidingWindow] [Authorize]&#xa;&#xa;GET / (cached 5min abs / 2min sliding)&#xa;GET /{id}&#xa;GET /job/{jobId}&#xa;POST /job/{jobId}&#xa;PUT /{id}&#xa;PATCH /{id}/complete&#xa;DELETE /{id}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;align=left;" vertex="1" parent="act_c">
+      <mxGeometry x="10" y="35" width="200" height="115" as="geometry"/>
+    </mxCell>
+    <mxCell id="act_cache" value="IMemoryCache | key: activities+userId&#xa;Abs 5min, Sliding 2min | invalidate on CUD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;" vertex="1" parent="act_c">
+      <mxGeometry x="10" y="160" width="200" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="act_svc" value="ActivityService&#xa;GetActivitiesAsync(userId)&#xa;GetActivityByIdAsync(userId, id)&#xa;GetActivitiesByJobIdAsync(userId, jobId)&#xa;CreateActivityAsync(userId, jobId, dto)&#xa;UpdateActivityAsync(userId, id, dto)&#xa;ToggleCompleteAsync(userId, id)&#xa;DeleteActivityAsync(userId, id)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;align=left;" vertex="1" parent="act_c">
+      <mxGeometry x="10" y="210" width="200" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="act_repo" value="ActivityRepository&#xa;GetByUserIdAsync(userId)&#xa;GetByIdAsync(id)&#xa;GetByJobIdAsync(jobId)&#xa;AddAsync, UpdateAsync, DeleteAsync&#xa;MongoDB: Activities" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=9;align=left;" vertex="1" parent="act_c">
+      <mxGeometry x="10" y="320" width="200" height="70" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="note_c" value="Notes Domain" style="swimlane;startSize=25;fillColor=#fce4ec;strokeColor=#c62828;fontStyle=1;fontSize=11;html=1;" vertex="1" parent="1">
+      <mxGeometry x="895" y="155" width="220" height="400" as="geometry"/>
+    </mxCell>
+    <mxCell id="note_ctrl" value="NoteController&#xa;Route: api/jobapplications/{jobId}/notes&#xa;[SlidingWindow] [Authorize]&#xa;&#xa;GET /{jobId}/notes&#xa;POST /{jobId}/notes&#xa;PUT /{jobId}/notes/{id}&#xa;DELETE /{jobId}/notes/{id}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;align=left;" vertex="1" parent="note_c">
+      <mxGeometry x="10" y="35" width="200" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="note_svc" value="NoteService&#xa;GetByJobIdAsync(userId, jobId)&#xa;CreateAsync(userId, jobId, dto)&#xa;UpdateAsync(userId, id, dto)&#xa;DeleteAsync(userId, id)&#xa;+ validates job ownership via&#xa;  JobApplicationRepository" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;align=left;" vertex="1" parent="note_c">
+      <mxGeometry x="10" y="145" width="200" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="note_dep" value="Cross-domain dep: uses JobApplicationRepository to verify job ownership before any note op" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;" vertex="1" parent="note_c">
+      <mxGeometry x="10" y="255" width="200" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="note_repo" value="NoteRepository&#xa;GetByJobIdAsync(jobId)&#xa;GetByIdAsync(id)&#xa;AddAsync, UpdateAsync, DeleteAsync&#xa;MongoDB: Notes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=9;align=left;" vertex="1" parent="note_c">
+      <mxGeometry x="10" y="305" width="200" height="80" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="rec_c" value="Recruiters Domain" style="swimlane;startSize=25;fillColor=#f3e5f5;strokeColor=#6a1b9a;fontStyle=1;fontSize=11;html=1;" vertex="1" parent="1">
+      <mxGeometry x="1125" y="155" width="220" height="400" as="geometry"/>
+    </mxCell>
+    <mxCell id="rec_ctrl" value="RecruiterController&#xa;Route: api/recruiter&#xa;[SlidingWindow] [Authorize]&#xa;&#xa;GET / (cached 5min abs / 2min sliding)&#xa;GET /{id}&#xa;POST /&#xa;PUT /{id}&#xa;DELETE /{id}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;align=left;" vertex="1" parent="rec_c">
+      <mxGeometry x="10" y="35" width="200" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="rec_cache" value="IMemoryCache | key: recruiters+userId&#xa;Abs 5min, Sliding 2min | invalidate on CUD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;" vertex="1" parent="rec_c">
+      <mxGeometry x="10" y="145" width="200" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="rec_svc" value="RecruiterService&#xa;GetAllAsync(userId)&#xa;GetByIdAsync(userId, id)&#xa;CreateAsync(userId, dto)&#xa;UpdateAsync(userId, id, dto)&#xa;DeleteAsync(userId, id)&#xa;+ ownership check" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;align=left;" vertex="1" parent="rec_c">
+      <mxGeometry x="10" y="195" width="200" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="rec_repo" value="RecruiterRepository&#xa;GetAllAsync(userId)&#xa;GetByIdAsync(id)&#xa;AddAsync(entity)&#xa;UpdateAsync(entity)&#xa;DeleteAsync(id)&#xa;MongoDB: Recruiters" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=9;align=left;" vertex="1" parent="rec_c">
+      <mxGeometry x="10" y="295" width="200" height="90" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="doc_c" value="Documents Domain (FUTURE — Supabase Storage)" style="swimlane;startSize=25;fillColor=#e8eaf6;strokeColor=#283593;fontStyle=1;fontSize=11;html=1;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="1355" y="155" width="305" height="400" as="geometry"/>
+    </mxCell>
+    <mxCell id="doc_ctrl" value="DocumentController (NEW)&#xa;Route: api/documents | [SlidingWindow] [Authorize]&#xa;&#xa;POST /api/documents/upload (multipart/form-data)&#xa;GET /api/documents&#xa;DELETE /api/documents/{id}&#xa;GET /api/documents/{id}/url (signed URL)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;align=left;" vertex="1" parent="doc_c">
+      <mxGeometry x="10" y="35" width="285" height="95" as="geometry"/>
+    </mxCell>
+    <mxCell id="doc_svc" value="DocumentService (NEW)&#xa;ValidateFileType(stream) — PDF/DOCX only&#xa;UploadToSupabase(stream, userId, docId)&#xa;SaveMetadataAsync(MongoDB)&#xa;GenerateSignedUrl(storageKey, TTL=1h)&#xa;DeleteFromSupabase(storageKey)&#xa;+ cache invalidation on upload/delete" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;align=left;" vertex="1" parent="doc_c">
+      <mxGeometry x="10" y="140" width="285" height="95" as="geometry"/>
+    </mxCell>
+    <mxCell id="doc_sb" value="Supabase .NET Client (NEW)&#xa;SUPABASE_SERVICE_KEY in appsettings.json&#xa;Server-side only, never exposed to browser&#xa;Bucket: resumes / {userId}/{docId}/{filename}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;align=left;" vertex="1" parent="doc_c">
+      <mxGeometry x="10" y="245" width="285" height="65" as="geometry"/>
+    </mxCell>
+    <mxCell id="doc_repo" value="DocumentRepository (NEW)&#xa;GetByUserIdAsync(userId)&#xa;GetByIdAsync(id)&#xa;AddAsync, DeleteAsync&#xa;MongoDB: Documents" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=9;align=left;dashed=1;" vertex="1" parent="doc_c">
+      <mxGeometry x="10" y="320" width="285" height="65" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="infra_c" value="Infrastructure / Cross-cutting" style="swimlane;startSize=25;fillColor=#f5f5f5;strokeColor=#999999;fontStyle=1;fontSize=11;html=1;" vertex="1" parent="1">
+      <mxGeometry x="205" y="565" width="1455" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="infra_mongo" value="MongoDBContext (Singleton)&#xa;EnsureIndexesAsync() — compound indexes on startup&#xa;MigrateAsync() — schema migrations on startup&#xa;Holds IMongoCollection&lt;T&gt; for all entities" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#333333;fontSize=9;align=left;" vertex="1" parent="infra_c">
+      <mxGeometry x="10" y="30" width="440" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="infra_cache" value="IMemoryCache (in-process, scoped per userId)&#xa;TTL: 5min absolute / 2min sliding&#xa;Used by: JobApplicationController, ActivityController, RecruiterController&#xa;Invalidated on every Create / Update / Delete" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;align=left;" vertex="1" parent="infra_c">
+      <mxGeometry x="460" y="30" width="460" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="infra_fv" value="FluentValidation (auto-registered from assembly)&#xa;RegisterDtoValidator | LoginDtoValidator&#xa;CreateJobApplicationDtoValidator&#xa;CreateActivityDtoValidator | CreateNoteDtoValidator | CreateRecruiterDtoValidator" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#333333;fontSize=9;align=left;" vertex="1" parent="infra_c">
+      <mxGeometry x="930" y="30" width="510" height="45" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="db_c" value="MongoDB Collections" style="swimlane;startSize=25;fillColor=#fff3e0;strokeColor=#e65100;fontStyle=1;fontSize=11;html=1;" vertex="1" parent="1">
+      <mxGeometry x="205" y="655" width="1455" height="115" as="geometry"/>
+    </mxCell>
+    <mxCell id="db_users" value="Users&#xa;_id, email (unique), name&#xa;passwordHash (BCrypt)&#xa;lastLogin, dateCreated" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=9;align=left;" vertex="1" parent="db_c">
+      <mxGeometry x="10" y="35" width="228" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="db_apps" value="JobApplications&#xa;_id, userId, companyName, position&#xa;status (enum), workMode (enum)&#xa;recruiterId?, resumeVersion, dates" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=9;align=left;" vertex="1" parent="db_c">
+      <mxGeometry x="248" y="35" width="228" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="db_acts" value="Activities&#xa;_id, userId, jobId&#xa;name, importance (enum)&#xa;date, completed, isUpcoming" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=9;align=left;" vertex="1" parent="db_c">
+      <mxGeometry x="486" y="35" width="228" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="db_notes" value="Notes&#xa;_id, userId, jobId&#xa;content&#xa;dateCreated, dateUpdated" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=9;align=left;" vertex="1" parent="db_c">
+      <mxGeometry x="724" y="35" width="228" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="db_recs" value="Recruiters&#xa;_id, userId, name, email&#xa;phone, title, company, linkedIn&#xa;notes, lastContactedAt" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=9;align=left;" vertex="1" parent="db_c">
+      <mxGeometry x="962" y="35" width="228" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="db_docs" value="Documents (FUTURE)&#xa;_id, userId, name, type&#xa;storageKey, fileType (pdf|docx)&#xa;usedInApplicationIds[], uploadedAt" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8eaf6;strokeColor=#283593;fontSize=9;align=left;dashed=1;" vertex="1" parent="db_c">
+      <mxGeometry x="1200" y="35" width="245" height="70" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e1" value="HTTPS REST&#xa;Bearer JWT" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;strokeWidth=2;" edge="1" source="fe_api" target="mw_c" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e2" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;" edge="1" source="auth_ctrl" target="auth_svc" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e3" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;" edge="1" source="auth_svc" target="auth_jwt" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e4" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;" edge="1" source="auth_svc" target="auth_repo" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e5" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;" edge="1" source="app_ctrl" target="app_svc" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;" edge="1" source="app_svc" target="app_repo" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e7" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;" edge="1" source="act_ctrl" target="act_svc" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e8" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;" edge="1" source="act_svc" target="act_repo" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e9" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;" edge="1" source="note_ctrl" target="note_svc" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;" edge="1" source="note_svc" target="note_repo" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e11" value="ownership&#xa;check" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;dashed=1;strokeColor=#c62828;fontColor=#c62828;" edge="1" source="note_svc" target="app_repo" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;" edge="1" source="rec_ctrl" target="rec_svc" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e13" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;" edge="1" source="rec_svc" target="rec_repo" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;dashed=1;strokeColor=#283593;" edge="1" source="doc_ctrl" target="doc_svc" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e15" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;dashed=1;strokeColor=#283593;" edge="1" source="doc_svc" target="doc_sb" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e16" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=9;dashed=1;strokeColor=#283593;" edge="1" source="doc_svc" target="doc_repo" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>
