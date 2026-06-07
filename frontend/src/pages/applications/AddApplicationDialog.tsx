@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'react-toastify'
-import { Loader2, UserPlus } from 'lucide-react'
+import { Loader2, UserPlus, Upload } from 'lucide-react'
 
 import {
   Dialog,
@@ -30,11 +30,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { addApplication, updateApplication } from '@/api/applications'
+import { addApplication, updateApplication, linkDocument } from '@/api/applications'
+import { getDocuments } from '@/api/documents'
 import { track } from '@/lib/analytics'
 import { getRecruiters } from '@/api/recruiters'
 import AddRecruiterDialog from '@/pages/recruiters/AddRecruiterDialog'
-import type { ApplicationStatus, Recruiter } from '@/types'
+import UploadDocumentDialog from '@/components/shared/UploadDocumentDialog'
+import type { ApplicationStatus, Document, Recruiter } from '@/types'
 import type { NormalizedApplication } from '@/api/applications'
 
 const schema = z.object({
@@ -47,7 +49,6 @@ const schema = z.object({
   workMode: z.enum(['Remote', 'OnSite', 'Hybrid']).optional(),
   salary: z.string(),
   source: z.string(),
-  resumeVersion: z.string(),
   recruiterId: z.string().optional(),
 })
 
@@ -63,16 +64,26 @@ interface Props {
 const STATUS_OPTIONS: ApplicationStatus[] = ['Applied', 'Interview', 'Offer', 'Rejected', 'Ghosted', 'Withdrawn']
 const WORK_MODE_OPTIONS = ['Remote', 'OnSite', 'Hybrid'] as const
 const NO_RECRUITER = '__none__'
+const NO_DOCUMENT = '__none__'
 
 export default function AddApplicationDialog({ open, onOpenChange, defaultStatus = 'Applied', application }: Props) {
   const queryClient = useQueryClient()
   const isEditing = !!application
   const [addRecruiterOpen, setAddRecruiterOpen] = useState(false)
+  const [uploadDocOpen, setUploadDocOpen] = useState(false)
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(null)
 
   const { data: recruiters = [] } = useQuery({
     queryKey: ['recruiters'],
     queryFn: getRecruiters,
   })
+
+  const { data: documents = [] } = useQuery({
+    queryKey: ['documents'],
+    queryFn: getDocuments,
+  })
+
+  const resumes = documents.filter(d => d.type === 'resume')
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -85,13 +96,13 @@ export default function AddApplicationDialog({ open, onOpenChange, defaultStatus
       location: '',
       salary: '',
       source: '',
-      resumeVersion: '',
       recruiterId: NO_RECRUITER,
     },
   })
 
   useEffect(() => {
     if (!open) return
+    setSelectedDocId(application?.documentId ?? null)
     if (isEditing && application) {
       form.reset({
         companyName: application.companyName ?? '',
@@ -102,7 +113,6 @@ export default function AddApplicationDialog({ open, onOpenChange, defaultStatus
         location: application.location ?? '',
         salary: application.salary ?? '',
         source: application.source ?? '',
-        resumeVersion: application.resumeVersion ?? '',
         workMode: application.workMode ?? 'OnSite',
         recruiterId: application.recruiterId ?? NO_RECRUITER,
       })
@@ -116,7 +126,6 @@ export default function AddApplicationDialog({ open, onOpenChange, defaultStatus
         location: '',
         salary: '',
         source: '',
-        resumeVersion: '',
         recruiterId: NO_RECRUITER,
       })
     }
@@ -125,7 +134,7 @@ export default function AddApplicationDialog({ open, onOpenChange, defaultStatus
   const { isSubmitting } = form.formState
 
   const mutation = useMutation({
-    mutationFn: (values: FormValues) => {
+    mutationFn: async (values: FormValues) => {
       const dto = {
         companyName: values.companyName,
         position: values.position,
@@ -135,15 +144,27 @@ export default function AddApplicationDialog({ open, onOpenChange, defaultStatus
         location: values.location ?? '',
         salary: values.salary ?? '',
         source: values.source ?? '',
-        resumeVersion: values.resumeVersion ?? '',
+        resumeVersion: '',
         workMode: values.workMode ?? 'OnSite',
         recruiterId: values.recruiterId === NO_RECRUITER ? undefined : values.recruiterId,
       }
-      return isEditing
-        ? updateApplication(application!.id, dto)
-        : addApplication(dto)
+
+      let appId: string
+      if (isEditing) {
+        await updateApplication(application!.id, dto)
+        appId = application!.id
+      } else {
+        appId = await addApplication(dto)
+      }
+
+      const prevDocId = isEditing ? (application?.documentId ?? null) : null
+      if (selectedDocId !== prevDocId) {
+        await linkDocument(appId, selectedDocId)
+      }
+
+      return values
     },
-    onSuccess: (_, values) => {
+    onSuccess: (values) => {
       queryClient.invalidateQueries({ queryKey: ['applications'] })
       if (isEditing) {
         queryClient.invalidateQueries({ queryKey: ['application', application!.id] })
@@ -266,13 +287,37 @@ export default function AddApplicationDialog({ open, onOpenChange, defaultStatus
                     </FormItem>
                   )} />
 
-                  <FormField control={form.control} name="resumeVersion" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Resume Version</FormLabel>
-                      <FormControl><Input placeholder="v2, tailored…" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium leading-none">Resume</label>
+                    <div className="flex gap-2">
+                      <Select
+                        value={selectedDocId ?? NO_DOCUMENT}
+                        onValueChange={v => setSelectedDocId(v === NO_DOCUMENT ? null : v)}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Select resume…" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={NO_DOCUMENT}>None</SelectItem>
+                          {resumes.map(d => (
+                            <SelectItem key={d.id} value={d.id}>
+                              {d.name}{d.version ? ` (v${d.version})` : ''}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0"
+                        onClick={() => setUploadDocOpen(true)}
+                        title="Upload new resume"
+                      >
+                        <Upload className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -327,6 +372,12 @@ export default function AddApplicationDialog({ open, onOpenChange, defaultStatus
         open={addRecruiterOpen}
         onOpenChange={setAddRecruiterOpen}
         onCreated={handleRecruiterCreated}
+      />
+
+      <UploadDocumentDialog
+        open={uploadDocOpen}
+        onOpenChange={setUploadDocOpen}
+        onUploaded={(doc: Document) => setSelectedDocId(doc.id)}
       />
     </>
   )

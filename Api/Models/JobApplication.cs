@@ -27,6 +27,9 @@ namespace Api.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string? RecruiterId { get; set; }
 
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? DocumentId { get; set; }
+
         [BsonRepresentation(BsonType.String)]
         public ApplicationStatus Status { get; set; } = ApplicationStatus.Applied;
 

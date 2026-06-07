@@ -37,6 +37,7 @@ export interface Application {
   source: string
   resumeVersion: string
   workMode: WorkMode
+  documentId?: string
   dateApplied: string     // ISO date string
   dateUpdated: string
   dateCreated: string

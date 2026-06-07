@@ -12,6 +12,7 @@ namespace Api.Shared
         public IMongoCollection<Activity> Activities;
         public IMongoCollection<Note> Notes;
         public IMongoCollection<Recruiter> Recruiters;
+        public IMongoCollection<Document> Documents;
         public MongoDBContext(IConfiguration configuration)
         {
             var client = new MongoClient(configuration["MongoDB:ConnectionString"]);
@@ -22,6 +23,7 @@ namespace Api.Shared
             Activities = _database.GetCollection<Activity>(configuration.GetValue<string>("MongoDB:ActivityCollection"));
             Notes = _database.GetCollection<Note>(configuration.GetValue<string>("MongoDB:NotesCollection"));
             Recruiters = _database.GetCollection<Recruiter>(configuration.GetValue<string>("MongoDB:RecruitersCollection"));
+            Documents = _database.GetCollection<Document>(configuration.GetValue<string>("MongoDB:DoucumentsCollection"));
         }
 
         public async Task MigrateAsync()
@@ -79,6 +81,12 @@ namespace Api.Shared
                 new CreateIndexOptions { Name = "ix_notes_user_job" });
 
             await Notes.Indexes.CreateOneAsync(noteIndex);
+
+            var documentIndex = new CreateIndexModel<Document>(
+                Builders<Document>.IndexKeys.Ascending(d => d.UserId),
+                new CreateIndexOptions { Name = "ix_documents_user" });
+
+            await Documents.Indexes.CreateOneAsync(documentIndex);
         }
     }
 }

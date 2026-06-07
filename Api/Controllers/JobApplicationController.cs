@@ -105,7 +105,18 @@ namespace Api.Controllers
             if (userId == null) return Unauthorized();
 
             await _service.DeleteAsync(userId, id);
-            _cache.Remove(_cacheKey + userId); // Invalidate cache on delete to ensure consistency
+            _cache.Remove(_cacheKey + userId);
+            return NoContent();
+        }
+
+        [HttpPatch("{id}/document")]
+        public async Task<IActionResult> LinkDocument(string id, [FromBody] LinkDocumentDto dto)
+        {
+            var userId = User.GetUserId();
+            if (userId == null) return Unauthorized();
+
+            await _service.LinkDocumentAsync(userId, id, dto.DocumentId);
+            _cache.Remove(_cacheKey + userId);
             return NoContent();
         }
     }

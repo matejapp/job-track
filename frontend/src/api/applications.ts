@@ -34,6 +34,7 @@ interface RawApplication {
   workMode?: WorkMode
   brandColor?: string
   recruiterId?: string
+  documentId?: string
   dateUpdated?: string
   dateCreated?: string
 }
@@ -80,6 +81,7 @@ export function normalizeApp(raw: RawApplication): NormalizedApplication {
     resumeVersion,
     workMode,
     recruiterId: raw.recruiterId,
+    documentId: raw.documentId,
     dateApplied,
     dateUpdated: raw.dateUpdated ?? '',
     dateCreated: raw.dateCreated ?? '',
@@ -144,11 +146,12 @@ export const getJobApplication = async (id: string): Promise<NormalizedApplicati
   return normalizeApp(data.jobApplication ?? {});
 };
 
-export const addApplication = async (dto: CreateApplicationDto): Promise<unknown> => {
-  return apiRequest('/api/jobapplication', {
+export const addApplication = async (dto: CreateApplicationDto): Promise<string> => {
+  const data = await apiRequest<GetJobApplicationResponse>('/api/jobapplication', {
     method: 'POST',
     body: toJobApplicationDto(dto),
   });
+  return data.jobApplication?.id ?? '';
 };
 
 export const updateApplication = async (id: string, dto: CreateApplicationDto): Promise<unknown> => {
@@ -161,5 +164,12 @@ export const updateApplication = async (id: string, dto: CreateApplicationDto): 
 export const deleteApplication = async (id: string): Promise<void> => {
   await apiRequest(`/api/jobapplication/${id}`, {
     method: 'DELETE',
+  });
+};
+
+export const linkDocument = async (appId: string, documentId: string | null): Promise<void> => {
+  await apiRequest(`/api/jobapplication/${appId}/document`, {
+    method: 'PATCH',
+    body: { documentId },
   });
 };

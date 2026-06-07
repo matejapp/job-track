@@ -10,10 +10,12 @@ namespace Api.Services
     public class JobApplicationService : IJobApplicationService
     {
         private readonly IJobApplicationRepository _repo;
+        private readonly IDocumentRepository _docRepo;
 
-        public JobApplicationService(IJobApplicationRepository repo)
+        public JobApplicationService(IJobApplicationRepository repo, IDocumentRepository docRepo)
         {
             _repo = repo;
+            _docRepo = docRepo;
         }
 
         public async Task<ResponseJobApplicationDto> GetByIdAsync(string userId, string id)
@@ -89,11 +91,29 @@ namespace Api.Services
             await _repo.UpdateAsync(existing);
         }
 
+        public async Task LinkDocumentAsync(string userId, string appId, string? documentId)
+        {
+            var app = await _repo.GetByIdAsync(appId);
+            if (app == null || app.UserId != userId)
+                throw new BusinessException(ErrorCodes.NotFound, "Job application not found", StatusCodes.Status404NotFound);
+
+            if (app.DocumentId != null && app.DocumentId != documentId)
+                await _docRepo.UpdateUsedInApplicationsAsync(app.DocumentId, appId, add: false);
+
+            if (documentId != null && documentId != app.DocumentId)
+                await _docRepo.UpdateUsedInApplicationsAsync(documentId, appId, add: true);
+
+            app.DocumentId = documentId;
+            app.DateUpdated = DateTime.UtcNow;
+            await _repo.UpdateAsync(app);
+        }
+
         private static ResponseJobApplicationDto ToDto(JobApplication entity) => new()
         {
             Id = entity.Id ?? string.Empty,
             UserId = entity.UserId,
             RecruiterId = entity.RecruiterId,
+            DocumentId = entity.DocumentId,
             CompanyName = entity.CompanyName,
             Position = entity.Position,
             ApplicationLink = entity.ApplicationLink,

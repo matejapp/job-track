@@ -5,13 +5,15 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { format, parseISO } from 'date-fns'
-import { ChevronLeft, ExternalLink, Plus, Trash2, MoreVertical, Check, ClipboardList, Activity as ActivityIcon, StickyNote, Info, Pencil } from 'lucide-react'
+import { ChevronLeft, ExternalLink, Plus, Trash2, MoreVertical, Check, ClipboardList, Activity as ActivityIcon, StickyNote, Info, Pencil, FileText, Eye, Unlink } from 'lucide-react'
 import { toast } from 'react-toastify'
-import { getJobApplication, deleteApplication, updateApplication } from '@/api/applications'
+import { getJobApplication, deleteApplication, updateApplication, linkDocument } from '@/api/applications'
 import { track } from '@/lib/analytics'
 import { getActivitiesByJob, createActivity, deleteActivity } from '@/api/activities'
 import { getNotesByJob, createNote, deleteNote } from '@/api/notes'
 import { getRecruiters } from '@/api/recruiters'
+import { getDocuments } from '@/api/documents'
+import DocumentPreviewDialog from '@/components/shared/DocumentPreviewDialog'
 import type { ActivityImportance, ApplicationStatus } from '@/types'
 import StatusBadge from '@/components/shared/StatusBadge'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
@@ -107,13 +109,25 @@ export default function ApplicationDetailPage() {
   const [editOpen, setEditOpen] = useState(false)
   const [actDialogOpen, setActDialogOpen] = useState(false)
   const [noteText, setNoteText] = useState('')
+  const [previewDocId, setPreviewDocId] = useState<string | null>(null)
 
   const { data: app, isLoading } = useQuery({ queryKey: ['application', id], queryFn: () => getJobApplication(id!) })
   const { data: activities = [] } = useQuery({ queryKey: ['activities', id], queryFn: () => getActivitiesByJob(id!), enabled: !!id })
   const { data: notes = [] } = useQuery({ queryKey: ['notes', id], queryFn: () => getNotesByJob(id!), enabled: !!id })
   const { data: recruiters = [] } = useQuery({ queryKey: ['recruiters'], queryFn: getRecruiters })
+  const { data: documents = [] } = useQuery({ queryKey: ['documents'], queryFn: getDocuments })
 
   const recruiter = app?.recruiterId ? recruiters.find(r => r.id === app.recruiterId) : null
+  const linkedDoc = app?.documentId ? documents.find(d => d.id === app.documentId) : null
+  const previewDoc = previewDocId ? documents.find(d => d.id === previewDocId) : null
+
+  const linkDocMut = useMutation({
+    mutationFn: (documentId: string | null) => linkDocument(id!, documentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['application', id] })
+      queryClient.invalidateQueries({ queryKey: ['documents'] })
+    },
+  })
 
   const deleteMut = useMutation({ mutationFn: () => deleteApplication(id!), onSuccess: () => { toast.success('Deleted'); navigate('/applications') }, onError: () => toast.error('Failed') })
   const deleteNoteMut = useMutation({ mutationFn: (nid: string) => deleteNote(id!, nid), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notes', id] }) })
@@ -188,7 +202,7 @@ export default function ApplicationDetailPage() {
           <TabsTrigger value="timeline"><ClipboardList className="h-4 w-4 mr-1.5" />Timeline</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="details" className="mt-4">
+        <TabsContent value="details" className="mt-4 space-y-4">
           <div className="grid grid-cols-2 gap-x-8 gap-y-5 p-4 rounded-lg border border-border bg-bg-surface">
             {fields.map(([label, value]) => (
               <div key={label}><p className="text-xs text-text-muted uppercase tracking-wide mb-1">{label}</p><p className="text-sm text-text-primary">{value}</p></div>
@@ -196,6 +210,45 @@ export default function ApplicationDetailPage() {
             {app.applicationLink && (
               <div><p className="text-xs text-text-muted uppercase tracking-wide mb-1">Link</p>
                 <a href={app.applicationLink} target="_blank" rel="noopener noreferrer" className="text-sm text-accent flex items-center gap-1 hover:underline"><ExternalLink className="h-3 w-3" />Open link</a>
+              </div>
+            )}
+          </div>
+
+          <div className="p-4 rounded-lg border border-border bg-bg-surface">
+            <p className="text-xs text-text-muted uppercase tracking-wide mb-3">Linked Resume</p>
+            {linkedDoc ? (
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 rounded bg-bg-subtle shrink-0"><FileText className="h-4 w-4 text-text-muted" /></div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-text-primary truncate">{linkedDoc.name}</p>
+                  {linkedDoc.version && <p className="text-xs text-text-muted">v{linkedDoc.version}</p>}
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setPreviewDocId(linkedDoc.id)}>
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => linkDocMut.mutate(null)} disabled={linkDocMut.isPending}>
+                  <Unlink className="h-4 w-4 text-text-muted" />
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-sm text-text-muted">No resume linked.</p>
+                <Select
+                  value=""
+                  onValueChange={val => val && linkDocMut.mutate(val)}
+                  disabled={linkDocMut.isPending || documents.length === 0}
+                >
+                  <SelectTrigger className="w-64">
+                    <SelectValue placeholder={documents.length === 0 ? 'No documents uploaded' : 'Link a resume…'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {documents.map(d => (
+                      <SelectItem key={d.id} value={d.id}>
+                        {d.name}{d.version ? ` (v${d.version})` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
           </div>
@@ -269,6 +322,16 @@ export default function ApplicationDetailPage() {
       />
 
       <ConfirmDialog open={deleteOpen} onOpenChange={setDeleteOpen} title="Delete Application" description="This permanently deletes the application and all its data." onConfirm={() => deleteMut.mutate()} loading={deleteMut.isPending} />
+
+      {previewDoc && (
+        <DocumentPreviewDialog
+          open={!!previewDocId}
+          onOpenChange={open => !open && setPreviewDocId(null)}
+          name={previewDoc.name}
+          fileUrl={previewDoc.fileUrl}
+          fileType={previewDoc.fileType}
+        />
+      )}
     </div>
   )
 }

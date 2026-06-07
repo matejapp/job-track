@@ -10,5 +10,6 @@ namespace Api.Services.Interfaces
         Task DeleteAsync(string userId, string id);
         Task<IEnumerable<ResponseJobApplicationDto>> GetByUserIdAsync(string userId);
         Task UpdateAsync(string userId, string id, CreateJobApplicationDto dto);
+        Task LinkDocumentAsync(string userId, string appId, string? documentId);
     }
 }

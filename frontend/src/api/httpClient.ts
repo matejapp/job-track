@@ -72,9 +72,13 @@ export async function apiRequest<T = unknown>(
   }: ApiRequestOptions = {},
 ): Promise<T> {
   const requestHeaders: Record<string, string> = { ...headers };
+  let fetchBody: BodyInit | undefined;
 
-  if (body !== undefined) {
+  if (body instanceof FormData) {
+    fetchBody = body;
+  } else if (body !== undefined) {
     requestHeaders['Content-Type'] = 'application/json';
+    fetchBody = JSON.stringify(body);
   }
 
   if (auth) {
@@ -85,7 +89,7 @@ export async function apiRequest<T = unknown>(
   const response = await fetch(`${API_URL}${path}`, {
     method,
     headers: requestHeaders,
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: fetchBody,
   });
 
   const data = await parseJson(response);
