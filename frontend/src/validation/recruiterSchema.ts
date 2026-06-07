@@ -16,17 +16,21 @@ const isTodayOrPast = (value: string): boolean => {
 }
 
 export const recruiterSchema = z.object({
-  name: z.string().trim().min(2, 'Name must be at least 2 characters'),
-  title: z.string().trim().min(2, 'Title must be at least 2 characters'),
-  company: z.string().trim().min(2, 'Company must be at least 2 characters'),
+  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(200, 'Name cannot exceed 200 characters'),
+  title: z.string().trim().max(200, 'Title cannot exceed 200 characters').optional().or(z.literal('')),
+  company: z.string().trim().min(2, 'Company must be at least 2 characters').max(200, 'Company cannot exceed 200 characters'),
   linkedInProfile: z
     .string()
     .trim()
-    .min(1, 'LinkedIn profile is required')
-    .refine(isHttpUrl, 'LinkedIn profile must be a valid http(s) URL'),
+    .max(500, 'LinkedIn profile cannot exceed 500 characters')
+    .refine(
+      val => val === '' || isHttpUrl(val),
+      'LinkedIn profile must be a valid http(s) URL',
+    ),
   email: z
     .string()
     .trim()
+    .max(254, 'Email cannot exceed 254 characters')
     .refine(
       val => val === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
       'Invalid email address',

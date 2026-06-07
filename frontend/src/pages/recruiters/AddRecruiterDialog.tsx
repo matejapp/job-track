@@ -101,7 +101,7 @@ export default function AddRecruiterDialog({ open, onOpenChange, recruiter, onCr
 
                 <FormField control={form.control} name="title" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title *</FormLabel>
+                    <FormLabel>Title</FormLabel>
                     <FormControl><Input placeholder="Senior Technical Recruiter" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -117,7 +117,7 @@ export default function AddRecruiterDialog({ open, onOpenChange, recruiter, onCr
 
                 <FormField control={form.control} name="linkedInProfile" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>LinkedIn Profile *</FormLabel>
+                    <FormLabel>LinkedIn Profile</FormLabel>
                     <FormControl><Input placeholder="https://linkedin.com/in/..." {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>

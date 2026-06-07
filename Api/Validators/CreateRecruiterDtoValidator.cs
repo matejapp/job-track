@@ -8,20 +8,27 @@ namespace Api.Validators
         public CreateRecruiterDtoValidator()
         {
             RuleFor(x => x.Name)
-                .NotEmpty().MinimumLength(2).WithMessage("Name is required");
+                .NotEmpty().WithMessage("Name is required")
+                .MinimumLength(2).WithMessage("Name must be at least 2 characters")
+                .MaximumLength(200).WithMessage("Name must not exceed 200 characters");
 
             RuleFor(x => x.Title)
-                .NotEmpty().MinimumLength(2).WithMessage("Title is required");
+                .MaximumLength(200).WithMessage("Title must not exceed 200 characters")
+                .When(x => !string.IsNullOrEmpty(x.Title));
 
             RuleFor(x => x.Company)
-                .NotEmpty().MinimumLength(2).WithMessage("Company is required");
+                .NotEmpty().WithMessage("Company is required")
+                .MinimumLength(2).WithMessage("Company must be at least 2 characters")
+                .MaximumLength(200).WithMessage("Company must not exceed 200 characters");
 
             RuleFor(x => x.LinkedInProfile)
-                .NotEmpty().WithMessage("LinkedIn profile is required")
-                .Must(IsValidUri).WithMessage("LinkedIn profile must be a valid URL");
+                .Must(IsValidUri).WithMessage("LinkedIn profile must be a valid URL")
+                .MaximumLength(500).WithMessage("LinkedIn profile URL must not exceed 500 characters")
+                .When(x => !string.IsNullOrEmpty(x.LinkedInProfile));
 
             RuleFor(x => x.Email)
                 .EmailAddress().WithMessage("Email is not valid")
+                .MaximumLength(254).WithMessage("Email must not exceed 254 characters")
                 .When(x => !string.IsNullOrEmpty(x.Email));
 
             RuleFor(x => x.Phone)

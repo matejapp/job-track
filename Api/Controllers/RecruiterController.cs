@@ -33,7 +33,7 @@ namespace Api.Controllers
             var userId = User.GetUserId();
             if (userId == null) return Unauthorized();
 
-            var recruiters = _cache.GetOrCreateAsync(_cacheKey + userId, async entry =>
+            var recruiters = await _cache.GetOrCreateAsync(_cacheKey + userId, async entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
                 entry.SlidingExpiration = TimeSpan.FromMinutes(2);
@@ -49,7 +49,6 @@ namespace Api.Controllers
             if (userId == null) return Unauthorized();
 
             var recruiter = await _service.GetByIdAsync(userId, id);
-            _cache.Remove(_cacheKey + userId); // Invalidate cache on read to ensure consistency
             return Ok(new { recruiter });
         }
 

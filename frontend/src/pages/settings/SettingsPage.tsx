@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { toast } from 'react-toastify'
 import { useAuth } from '@/providers/AuthProvider'
+import { forgotPassword } from '@/api/auth'
 import { useTheme } from '@/providers/ThemeProvider'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
 import { Button } from '@/components/ui/button'
@@ -20,6 +21,7 @@ export default function SettingsPage() {
     () => (localStorage.getItem(DENSITY_KEY) as Density | null) ?? 'default'
   )
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [resetLoading, setResetLoading] = useState(false)
 
   const setDensity = (d: Density) => {
     localStorage.setItem(DENSITY_KEY, d)
@@ -66,9 +68,20 @@ export default function SettingsPage() {
           </Button>
           <Button
             variant="ghost"
-            onClick={() => toast.info('Coming soon')}
+            disabled={resetLoading}
+            onClick={async () => {
+              setResetLoading(true)
+              try {
+                await forgotPassword(user!.email)
+                toast.success('Password reset email sent. Check your inbox.')
+              } catch {
+                toast.error('Failed to send reset email. Please try again.')
+              } finally {
+                setResetLoading(false)
+              }
+            }}
           >
-            Change Password
+            {resetLoading ? 'Sending…' : 'Change Password'}
           </Button>
         </div>
       </section>

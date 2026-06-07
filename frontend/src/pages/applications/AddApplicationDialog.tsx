@@ -40,15 +40,42 @@ import type { ApplicationStatus, Document, Recruiter } from '@/types'
 import type { NormalizedApplication } from '@/api/applications'
 
 const schema = z.object({
-  companyName: z.string().min(1, 'Required'),
-  position: z.string().min(1, 'Required'),
+  companyName: z
+    .string()
+    .trim()
+    .min(2, 'Company name must be at least 2 characters')
+    .max(200, 'Company name cannot exceed 200 characters'),
+  position: z
+    .string()
+    .trim()
+    .min(2, 'Position must be at least 2 characters')
+    .max(200, 'Position cannot exceed 200 characters'),
   status: z.enum(['Applied', 'Interview', 'Offer', 'Rejected', 'Ghosted', 'Withdrawn']),
   dateApplied: z.string().min(1, 'Required'),
-  applicationLink: z.string().url('Must be a valid URL').or(z.literal('')),
-  location: z.string(),
+  applicationLink: z
+    .string()
+    .trim()
+    .max(2000, 'Application link cannot exceed 2000 characters')
+    .refine(
+      val => val === '' || (() => { try { const u = new URL(val); return u.protocol === 'http:' || u.protocol === 'https:' } catch { return false } })(),
+      'Must be a valid http(s) URL',
+    ),
+  location: z
+    .string()
+    .trim()
+    .max(200, 'Location cannot exceed 200 characters')
+    .refine(val => val === '' || val.length >= 2, 'Location must be at least 2 characters'),
   workMode: z.enum(['Remote', 'OnSite', 'Hybrid']).optional(),
-  salary: z.string(),
-  source: z.string(),
+  salary: z
+    .string()
+    .trim()
+    .max(100, 'Salary cannot exceed 100 characters')
+    .refine(val => val === '' || val.length >= 2, 'Salary must be at least 2 characters'),
+  source: z
+    .string()
+    .trim()
+    .max(200, 'Source cannot exceed 200 characters')
+    .refine(val => val === '' || val.length >= 2, 'Source must be at least 2 characters'),
   recruiterId: z.string().optional(),
 })
 
