@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Api.Common;
 using Api.Dto;
 using Api.Models;
@@ -12,12 +13,16 @@ namespace Api.Services
         private readonly IAuthRepository _repo;
         private readonly IJwtTokenService _jwt;
         private readonly ILogger<AuthService> _logger;
+        private readonly IEmailService _email;
+        private readonly IConfiguration _config;
 
-        public AuthService(IAuthRepository repo, IJwtTokenService jwt, ILogger<AuthService> logger)
+        public AuthService(IAuthRepository repo, IJwtTokenService jwt, ILogger<AuthService> logger, IEmailService email, IConfiguration config)
         {
             _repo = repo;
             _jwt = jwt;
             _logger = logger;
+            _email = email;
+            _config = config;
         }
 
         public async Task<GetUserDto> RegisterUser(RegisterDto registerDto)
@@ -77,6 +82,40 @@ namespace Api.Services
                 Name = user.Name,
                 Email = user.Email
             };
+        }
+
+        public async Task RequestPasswordResetAsync(string email)
+        {
+            var user = await _repo.GetUserByEmail(email);
+            if (user == null)
+                return; // Don't reveal whether the email exists
+
+            var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+            var expiry = DateTime.UtcNow.AddHours(1);
+
+            await _repo.UpdatePasswordResetTokenAsync(user.Id!, token, expiry);
+
+            var baseUrl = _config["AppBaseUrl"] ?? "https://job-track.app";
+            var resetLink = $"{baseUrl}/reset-password?token={token}";
+
+            await _email.SendPasswordResetEmailAsync(email, resetLink);
+            _logger.LogInformation("Password reset email sent for user {UserId}", user.Id);
+        }
+
+        public async Task ResetPasswordAsync(string token, string newPassword)
+        {
+            var user = await _repo.GetUserByResetTokenAsync(token);
+            if (user == null)
+                throw new BusinessException(ErrorCodes.InvalidCredentials, "Invalid or expired token", StatusCodes.Status400BadRequest);
+
+            if (user.PasswordResetTokenExpiry < DateTime.UtcNow)
+                throw new BusinessException(ErrorCodes.InvalidCredentials, "Invalid or expired token", StatusCodes.Status400BadRequest);
+
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _repo.UpdatePasswordAsync(user.Id!, hashedPassword);
+            await _repo.UpdatePasswordResetTokenAsync(user.Id!, null, null);
+
+            _logger.LogInformation("Password reset successfully for user {UserId}", user.Id);
         }
     }
 }

@@ -20,5 +20,10 @@ namespace Api.Models
         [BsonElement("last_login")]
         [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
         public DateTime? LastLogin { get; set; }
+
+        public string? PasswordResetToken { get; set; }
+
+        [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+        public DateTime? PasswordResetTokenExpiry { get; set; }
     }
 }

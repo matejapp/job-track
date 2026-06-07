@@ -20,3 +20,11 @@ export const register = (dto: RegisterDto): Promise<User> =>
     email: dto.email,
     password: dto.password,
   });
+
+export async function forgotPassword(email: string): Promise<void> {
+  await authRequest<{ message: string }>('/api/auth/forgot-password', { email });
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  await authRequest<{ message: string }>('/api/auth/reset-password', { token, newPassword });
+}

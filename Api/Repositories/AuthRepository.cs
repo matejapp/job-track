@@ -30,5 +30,27 @@ namespace Api.Repositories
             );
         }
 
+        public async Task<User?> GetUserByResetTokenAsync(string token)
+        {
+            return await _collection.Find(u => u.PasswordResetToken == token).FirstOrDefaultAsync();
+        }
+
+        public async Task UpdatePasswordResetTokenAsync(string id, string? token, DateTime? expiry)
+        {
+            var update = Builders<User>.Update.Combine(
+                Builders<User>.Update.Set(u => u.PasswordResetToken, token),
+                Builders<User>.Update.Set(u => u.PasswordResetTokenExpiry, expiry)
+            );
+            await _collection.UpdateOneAsync(u => u.Id == id, update);
+        }
+
+        public async Task UpdatePasswordAsync(string id, string hashedPassword)
+        {
+            await _collection.UpdateOneAsync(
+                u => u.Id == id,
+                Builders<User>.Update.Set(u => u.PasswordHashed, hashedPassword)
+            );
+        }
+
     }
 }

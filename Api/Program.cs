@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using Serilog;
+using SupabaseClient = Supabase.Client;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,6 +35,16 @@ builder.Services.AddSingleton<MongoDBContext>();
 
 //Cache registration
 builder.Services.AddMemoryCache();
+
+builder.Services.AddSingleton<SupabaseClient>(sp =>
+{
+    var supabaseUrl = builder.Configuration["SupaBase:Url"]
+        ?? throw new InvalidOperationException("SupaBase:Url is required");
+    var supabaseKey = builder.Configuration["SupaBase:Key"]
+        ?? throw new InvalidOperationException("SupaBase:Key is required");
+    return new SupabaseClient(supabaseUrl, supabaseKey);
+});
+
 
 
 // Health checks
@@ -55,6 +66,10 @@ builder.Services.AddScoped<INoteRepository, NoteRepository>();
 builder.Services.AddScoped<INoteService, NoteService>();
 builder.Services.AddScoped<IRecruiterRepository, RecruiterRepository>();
 builder.Services.AddScoped<IRecruiterService, RecruiterService>();
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddScoped<ISupabaseStorageService, SupabaseStorageService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Validation
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterDtoValidator>();
@@ -130,6 +145,9 @@ builder.Services.AddSwaggerGen();
 
 
 var app = builder.Build();
+
+var supabase = app.Services.GetRequiredService<SupabaseClient>();
+await supabase.InitializeAsync();
 
 using (var scope = app.Services.CreateScope())
 {

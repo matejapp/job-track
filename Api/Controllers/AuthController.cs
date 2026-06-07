@@ -52,6 +52,20 @@ namespace Api.Controllers
             var user = await _service.GetUserName(dto.Email);
             return Ok(new { token, user });
         }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            await _service.RequestPasswordResetAsync(dto.Email);
+            return Ok(new { message = "If an account with that email exists, a reset link has been sent." });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            await _service.ResetPasswordAsync(dto.Token, dto.NewPassword);
+            return Ok(new { message = "Password reset successfully." });
+        }
     }
 
 }
