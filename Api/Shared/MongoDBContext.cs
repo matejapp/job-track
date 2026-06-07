@@ -18,12 +18,12 @@ namespace Api.Shared
             var client = new MongoClient(configuration["MongoDB:ConnectionString"]);
             _database = client.GetDatabase(configuration["MongoDB:DatabaseName"]);
 
-            Users = _database.GetCollection<User>(configuration.GetValue<string>("MongoDB:UsersCollection"));
-            JobApplications = _database.GetCollection<JobApplication>(configuration.GetValue<string>("MongoDB:JobApplicationsCollection"));
-            Activities = _database.GetCollection<Activity>(configuration.GetValue<string>("MongoDB:ActivityCollection"));
-            Notes = _database.GetCollection<Note>(configuration.GetValue<string>("MongoDB:NotesCollection"));
-            Recruiters = _database.GetCollection<Recruiter>(configuration.GetValue<string>("MongoDB:RecruitersCollection"));
-            Documents = _database.GetCollection<Document>(configuration.GetValue<string>("MongoDB:DoucumentsCollection"));
+            Users = _database.GetCollection<User>(configuration.GetValue<string>("MongoDB:UsersCollection") ?? "Users");
+            JobApplications = _database.GetCollection<JobApplication>(configuration.GetValue<string>("MongoDB:JobApplicationsCollection") ?? "JobApplications");
+            Activities = _database.GetCollection<Activity>(configuration.GetValue<string>("MongoDB:ActivityCollection") ?? "Activities");
+            Notes = _database.GetCollection<Note>(configuration.GetValue<string>("MongoDB:NotesCollection") ?? "Notes");
+            Recruiters = _database.GetCollection<Recruiter>(configuration.GetValue<string>("MongoDB:RecruitersCollection") ?? "Recruiters");
+            Documents = _database.GetCollection<Document>(configuration.GetValue<string>("MongoDB:DoucumentsCollection") ?? "Documents");
         }
 
         public async Task MigrateAsync()
