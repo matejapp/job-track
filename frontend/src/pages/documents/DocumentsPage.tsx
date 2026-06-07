@@ -1,8 +1,11 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { FileText, Upload, AlertCircle } from 'lucide-react'
-import { getDocuments } from '@/api/documents'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { FileText, Upload, Trash2, Eye } from 'lucide-react'
+import { getDocuments, deleteDocument } from '@/api/documents'
 import EmptyState from '@/components/shared/EmptyState'
+import UploadDocumentDialog from '@/components/shared/UploadDocumentDialog'
+import ConfirmDialog from '@/components/shared/ConfirmDialog'
+import DocumentPreviewDialog from '@/components/shared/DocumentPreviewDialog'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -19,7 +22,10 @@ function sortDocs(docs: Document[], sort: SortKey) {
   })
 }
 
-function DocCard({ doc }: { doc: Document }) {
+function DocCard({ doc, onDelete }: { doc: Document; onDelete: (id: string) => void }) {
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
+
   return (
     <div className="p-4 rounded-lg border border-border bg-bg-surface space-y-3">
       <div className="flex items-start gap-3">
@@ -43,22 +49,56 @@ function DocCard({ doc }: { doc: Document }) {
           Used in {doc.usedInApplicationIds.length} application{doc.usedInApplicationIds.length !== 1 ? 's' : ''}
         </p>
       )}
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-center">
+        <Button variant="ghost" size="sm" onClick={() => setPreviewOpen(true)}>
+          <Eye className="h-4 w-4 mr-1.5" />Preview
+        </Button>
         <Button variant="ghost" size="sm" asChild>
           <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">Download</a>
         </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-destructive hover:text-destructive ml-auto"
+          onClick={() => setConfirmOpen(true)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Delete document"
+        description={`"${doc.name}" will be permanently deleted.`}
+        onConfirm={() => onDelete(doc.id)}
+      />
+
+      <DocumentPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        name={doc.name}
+        fileUrl={doc.fileUrl}
+        fileType={doc.fileType}
+      />
     </div>
   )
 }
 
 export default function DocumentsPage() {
   const [sort, setSort] = useState<SortKey>('date')
+  const [uploadOpen, setUploadOpen] = useState(false)
+  const queryClient = useQueryClient()
 
   const { data: documents = [], isLoading } = useQuery({
     queryKey: ['documents'],
     queryFn: getDocuments,
     retry: false,
+  })
+
+  const { mutate: remove } = useMutation({
+    mutationFn: deleteDocument,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['documents'] }),
   })
 
   const resumes = sortDocs(documents.filter(d => d.type === 'resume'), sort)
@@ -73,18 +113,12 @@ export default function DocumentsPage() {
             {documents.length > 0 ? `${documents.length} document${documents.length !== 1 ? 's' : ''}` : 'Manage your resumes and cover letters'}
           </p>
         </div>
-        <Button disabled title="Coming soon — backend not yet implemented">
+        <Button onClick={() => setUploadOpen(true)}>
           <Upload className="h-4 w-4 mr-2" />Upload
         </Button>
       </div>
 
-      {/* Backend notice */}
-      <div className="flex items-start gap-3 p-4 rounded-lg border border-border bg-bg-subtle">
-        <AlertCircle className="h-4 w-4 text-text-muted mt-0.5 shrink-0" />
-        <p className="text-sm text-text-secondary">
-          Document storage requires a backend update. Your files will appear here once the API is live.
-        </p>
-      </div>
+      <UploadDocumentDialog open={uploadOpen} onOpenChange={setUploadOpen} />
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -121,7 +155,7 @@ export default function DocumentsPage() {
                 <EmptyState icon={FileText} title="No resumes" description="Upload your resume to get started." />
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {resumes.map(doc => <DocCard key={doc.id} doc={doc} />)}
+                  {resumes.map(doc => <DocCard key={doc.id} doc={doc} onDelete={remove} />)}
                 </div>
               )}
             </TabsContent>
@@ -130,7 +164,7 @@ export default function DocumentsPage() {
                 <EmptyState icon={FileText} title="No cover letters" description="Upload a cover letter to get started." />
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {coverLetters.map(doc => <DocCard key={doc.id} doc={doc} />)}
+                  {coverLetters.map(doc => <DocCard key={doc.id} doc={doc} onDelete={remove} />)}
                 </div>
               )}
             </TabsContent>
