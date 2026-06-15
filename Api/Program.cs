@@ -102,7 +102,8 @@ builder.Services.AddCors(options =>
                             "http://localhost:4173",
                             "https://job-track.app",
                             "https://www.job-track.app",
-                            "https://job-track-eta.vercel.app")
+                            "https://job-track-eta.vercel.app",
+                            "https://job-track-378d.onrender.com")
               .AllowAnyHeader()
               .AllowAnyMethod());
 

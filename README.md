@@ -177,7 +177,7 @@ The main app works, but there are still sensible next steps:
 - Finish profile editing in the Settings page.
 - Add email verification before opening signups more widely.
 
-More detail is in [docs/ROADMAP.md](docs/ROADMAP.md).
+
 
 ## License
 
