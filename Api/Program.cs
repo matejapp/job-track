@@ -101,7 +101,8 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:5173",
                             "http://localhost:4173",
                             "https://job-track.app",
-                            "https://www.job-track.app")
+                            "https://www.job-track.app",
+                             "https://job-track-378d.onrender.com")
               .AllowAnyHeader()
               .AllowAnyMethod());
 
